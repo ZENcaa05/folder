@@ -1,258 +1,160 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Form Input Siswa</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .form-container {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      padding: 50px;
-      width: 100%;
-      max-width: 450px;
-      animation: slideIn 0.5s ease-out;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    h1 {
-      color: #333;
-      margin-bottom: 10px;
-      font-size: 28px;
-      font-weight: 700;
-      text-align: center;
-    }
-
-    .subtitle {
-      color: #999;
-      text-align: center;
-      margin-bottom: 30px;
-      font-size: 14px;
-    }
-
-    .form-group {
-      margin-bottom: 25px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .form-group label {
-      color: #333;
-      font-weight: 600;
-      margin-bottom: 8px;
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .form-group input {
-      padding: 12px 15px;
-      border: 2px solid #e0e0e0;
-      border-radius: 10px;
-      font-size: 15px;
-      outline: none;
-      transition: all 0.3s ease;
-      background: #f8f9fa;
-    }
-
-    .form-group input:focus {
-      border-color: #667eea;
-      background: white;
-      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-      transform: translateY(-2px);
-    }
-
-    .form-group input::placeholder {
-      color: #bbb;
-    }
-
-    .button-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 12px;
-      margin-top: 35px;
-    }
-
-    button, input[type="button"], input[type="reset"] {
-      padding: 12px 16px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 13px;
-      transition: all 0.3s ease;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    input[type="reset"].clear {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      color: white;
-    }
-
-    input[type="reset"].clear:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 7px 20px rgba(245, 87, 108, 0.3);
-    }
-
-    input[type="reset"].clear:active {
-      transform: translateY(-1px);
-    }
-
-    input[type="button"].save {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      color: white;
-    }
-
-    input[type="button"].save:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 7px 20px rgba(79, 172, 254, 0.3);
-    }
-
-    input[type="button"].save:active {
-      transform: translateY(-1px);
-    }
-
-    input[type="button"].search {
-      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-      color: white;
-    }
-
-    input[type="button"].search:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 7px 20px rgba(67, 233, 123, 0.3);
-    }
-
-    input[type="button"].search:active {
-      transform: translateY(-1px);
-    }
-
-    .divider {
-      height: 1px;
-      background: #e0e0e0;
-      margin: 30px 0;
-    }
-
-    @media (max-width: 480px) {
-      .form-container {
-        padding: 30px 25px;
-      }
-
-      h1 {
-        font-size: 24px;
-      }
-
-      .button-group {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      input[type="button"].search {
-        grid-column: 1 / -1;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORM INPUT SISWA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        table {
+            margin-top: 20px;
+        }
+        td {
+            padding: 8px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            width: 200px;
+        }
+        input[type="button"], input[type="reset"] {
+            padding: 5px 15px;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        .message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
 </head>
-
 <body>
-  <div class="form-container">
-    <h1>📚 Form Input Siswa</h1>
-    <p class="subtitle">Masukkan data siswa dengan lengkap</p>
+    <h1>FORM INPUT SISWA</h1>
+    
+    <div id="message"></div>
+    
+    <table>
+        <tr>
+            <td>NIS</td>
+            <td>:</td>
+            <td><input type="text" name="" id="Nis"></td>
+        </tr>
+        <tr>
+            <td>NAMA LENGKAP</td>
+            <td>:</td>
+            <td><input type="text" name="" id="NamaLengkap"></td>
+        </tr>
+        <tr>
+            <td>KELAS</td>
+            <td>:</td>
+            <td><input type="text" name="" id="kelas"></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td>
+                <input type="reset" value="Clear" id="reset">
+                <input type="button" value="Simpan" id="save">
+                <input type="button" value="Cari" id="cari">
+            </td>
+        </tr>
+    </table>
 
-    <div class="form-group">
-      <label for="nis">NIS (Nomor Induk Siswa)</label>
-      <input type="text" id="nis" placeholder="Contoh: 12345678">
-    </div>
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.js" integrity="sha512-+k1pnlgt4F1H8L7t3z95o3/KO+o78INEcXTbnoJQ/F2VqDVhWoaiVml/OEHv9HsVgxUaVW+IbiZPUJQfF/YxZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    <div class="form-group">
-      <label for="namaLengkap">Nama Lengkap</label>
-      <input type="text" id="namaLengkap" placeholder="Masukkan nama lengkap siswa">
-    </div>
-
-    <div class="form-group">
-      <label for="kelas">Kelas</label>
-      <input type="text" id="kelas" placeholder="Contoh: XI IK 2">
-    </div>
-
-    <div class="button-group">
-      <input type="reset" class="clear" value="Clear" id="reset">
-      <input type="button" class="save" value="Simpan" id="save">
-      <input type="button" class="search" value="Cari">
-    </div>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.js" integrity="sha512-+k1pnlgt4F1H8L7t3z95o3/KO+o78INEcXTbnoJQ/F2VqDVhWoaiVml/OEHv9HsVgxUaVW+IbiZPUJQfF/YxZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script type="module">
+    <!-- Firebase -->
+    <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-    import { ref, set, getDatabase } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
+    import { onValue, ref, set, getDatabase } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyDJ_92zgIeBIYrxkSU67Ifbdz7-FOD5aOY",
-      authDomain: "latihan1xiik2-50d16.firebaseapp.com",
-      databaseURL: "https://latihan1xiik2-50d16-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "latihan1xiik2-50d16",
-      storageBucket: "latihan1xiik2-50d16.firebasestorage.app",
-      messagingSenderId: "335924911064",
-      appId: "1:335924911064:web:d0790e5dacfb29122bf0ad"
+        apiKey: "AIzaSyAOd89-cigY9-qHxP1erFjqx1mxt_papo4",
+        authDomain: "latihan1-2e0c0.firebaseapp.com",
+        databaseURL: "https://latihan1-2e0c0-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "latihan1-2e0c0",
+        storageBucket: "latihan1-2e0c0.firebasestorage.app",
+        messagingSenderId: "529165997723",
+        appId: "1:529165997723:web:56303ba77586b2569f983e"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase();
 
-    $("#reset").click(function(){
-      $("#nis").val("");
-      $("#namaLengkap").val("");
-      $("#kelas").val("");
+    function showMessage(msg, type) {
+        $("#message").html(`<div class="message ${type}">${msg}</div>`);
+        setTimeout(() => $("#message").html(""), 3000);
+    }
+
+    $("#reset").click(() => {
+        $("#Nis").val("");
+        $("#NamaLengkap").val("");
+        $("#kelas").val("");
     });
 
-    $("#save").click(function(){
-      let nis = $("#nis").val();
-      let namaLengkap = $("#namaLengkap").val();
-      let kelas = $("#kelas").val();
-      
-      if(nis && namaLengkap && kelas) {
-        const refsisiwa = ref(db, "siswa");
-        set(refsisiwa,{
-          "nis": nis,
-          "namaLengkap": namaLengkap,
-          "kelas": kelas
+    $("#save").click(() => {
+        let Nis = $("#Nis").val();
+        let NamaLengkap = $("#NamaLengkap").val();
+        let kelas = $("#kelas").val();
+
+        if (!Nis || !NamaLengkap || !kelas) {
+            showMessage("Semua field harus diisi!", "error");
+            return;
+        }
+
+        console.log("NIS : " + Nis);
+        console.log("Nama Lengkap : " + NamaLengkap);
+        console.log("Kelas : " + kelas);
+
+        const refsiswa = ref(db, "siswa/" + Nis);
+        set(refsiswa, {
+            "namaLengkap": NamaLengkap,
+            "kelas": kelas
+        }).then(() => {
+            showMessage("Data berhasil disimpan!", "success");
+            $("#Nis").val("");
+            $("#NamaLengkap").val("");
+            $("#kelas").val("");
+        }).catch((error) => {
+            showMessage("Error: " + error.message, "error");
         });
-        
-        $("#nis").val("");
-        $("#namaLengkap").val("");
-        $("#kelas").val("");
-        alert("Data berhasil disimpan!");
-      } else {
-        alert("Mohon lengkapi semua field!");
-      }
     });
-  </script>
+
+    $("#cari").click(() => {
+        let Nis = $("#Nis").val();
+        let refsiswa = ref(db, "siswa/" + Nis);
+        console.log("Mencari NIS: " + Nis);
+
+        onValue(refsiswa, (snapshot) => {
+            if (snapshot.exists()) {
+                let data = snapshot.val();
+                console.log("Data ditemukan:", data);
+                
+                // Gunakan nama property yang sama dengan saat menyimpan
+                $("#NamaLengkap").val(data.namaLengkap || "");
+                $("#kelas").val(data.kelas || "");
+                
+                showMessage("Data ditemukan!", "success");
+            } else {
+                showMessage("Data tidak ditemukan!", "error");
+                $("#NamaLengkap").val("");
+                $("#kelas").val("");
+            }
+        }, {
+            onlyOnce: true
+        });
+    });
+    </script>
 </body>
 </html>
