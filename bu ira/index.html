@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="styl.css">
+</head>
+<body>
+    <header>
+        <h1>Kontrol Alat Keahlian Kompetesi</h1>
+        <p>Kontrol & Monitoring sensor</p>
+    </header>
+
+    <main>
+        <section class="control-panel">
+            <h2>kontrol panel</h2>
+            <div class="button-grup">
+                <button id="lampuON">Nyalakan Lampu</button>
+                <button id="lampuOF">Matikan Lampu</button>
+            </div>
+            
+            <div class="button-grup">
+                <button id="servoleft">servo putar kiri</button>
+                <button id="servoright">servo putar kanan</button>
+            </div>
+
+            <!-- <div class="button-grup">
+                <button id="lampuON">Nyalakan Lampu</button>
+                <button id="lampuOF">Matikan Lampu</button>
+            </div> -->
+
+        </section>
+        
+        <section id="sensor-panel">
+            <h2>Monitoring Sensor</h2>
+            <div class="sensor">
+                <span>sensor api ;</span>
+                <span id="fireStatus">Menunggu....</span>
+            </div>
+             <div class="sensor">
+                <span>statusSuhu ;</span>
+                <span id="tempValue">0</span>
+            </div>
+
+            <div class="sensor">
+                <span>jarak ;</span>
+                <span id="distanceValue">0 cm</span>
+            </div>
+           
+        </section>
+    </main>
+
+    <footer>
+        <p>@2025 by |ZENca </p>
+    </footer>
+</body>
+</html>
