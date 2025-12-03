@@ -47,7 +47,7 @@
 */
 
 /* Test Mode (No Authentication) */
-#define REFERENCE_URL "https://ledk7-62e13-default-rtdb.asia-southeast1.firebasedatabase.app/"
+#define REFERENCE_URL "https://tesbuzzer-default-rtdb.asia-southeast1.firebasedatabase.app/"
 
 /* Uncomment the following line for Locked Mode (With Authentication) */
 // #define AUTH_TOKEN "YOUR_AUTHENTICATION_CODE"
