@@ -1,47 +1,46 @@
 #include "secrets.h"
 #include <Firebase.h>
 
-#define led1 D2
-
+#define buzzerPin D4   // buzzer positif ke D4, negatif ke GND
 
 Firebase fb(REFERENCE_URL);
 
-
 void setup(){
-  Serial.begin (115200);
-  pinMode (led1, OUTPUT);
+  Serial.begin(115200);
+  pinMode(buzzerPin, OUTPUT);
   WiFi.disconnect();
-  delay (500);
+  delay(500);
   
   Serial.println();
-  Serial.println("menghubungkan ke WiFi : ");
+  Serial.println("Menghubungkan ke WiFi : ");
   Serial.println(WIFI_SSID);
 
-  WiFi.begin(WIFI_SSID,WIFI_PASSWORD);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
-  while (WiFi.status() !=WL_CONNECTED){
+  while (WiFi.status() != WL_CONNECTED){
     Serial.print("o");
     delay(500);
   }
 
-  Serial.println("Wifi tersambung");
-  Serial.println("firebase connect");
-
+  Serial.println("\nWiFi tersambung!");
+  Serial.println("Firebase connect");
 }
 
 void loop(){
-  bool ledValue = false;
+  bool buzzerValue = true;
 
-  int status = fb.getBool("/led/led1", ledValue);
+  // Path Firebase sesuai file kamu: dataBuzzer/keadaan
+  int status = fb.getBool("/dataBuzzer/keadaan", buzzerValue);
 
   if (status == 200){
-    Serial.println("LED1 = ");
-    Serial.println(ledValue);
+    Serial.print("Buzzer = ");
+    Serial.println(buzzerValue);
 
-    digitalWrite(led1, ledValue ? HIGH : LOW);
+    // HIGH = bunyi, LOW = mati
+    digitalWrite(buzzerPin, buzzerValue ? HIGH : LOW);
   } 
   else {
-    Serial.println("firebase error");
+    Serial.println("Firebase error");
   }
 
   delay(500);
