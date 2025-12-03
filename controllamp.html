@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>control lamp</title>
+</head>
+<body>
+    <h2>Lamp Firebase control</h2>
+    <input type="checkbox" name="led1" id="led1">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>control lamp</title>
+    <style>
+        #led1 {
+            width: 40px;
+            height: 20px;
+            appearance: none;
+            background: #ccc;
+            outline: none;
+            border-radius: 20px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        #led1:checked {
+            background: #4caf50;
+        }
+
+        #led1::before {
+            content: "";
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            transition: transform 0.3s ease;
+        }
+
+        #led1:checked::before {
+            transform: translateX(20px);
+        }
+    </style>
+</head>
+
+    <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue }
+  from  "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBE7QbTlagHHPDhjzJTo2wOBVOOCMdESuo",
+    authDomain: "ledk7-62e13.firebaseapp.com",
+    databaseURL: "https://ledk7-62e13-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "ledk7-62e13",
+    storageBucket: "ledk7-62e13.firebasestorage.app",
+    messagingSenderId: "803644242950",
+    appId: "1:803644242950:web:60818865ef2e6626ccd787"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+
+  const ledRef = ref(database, 'led/led1');
+  onValue(ledRef, (snapshot) => {
+    const ledStatus = snapshot.val();
+    document.getElementById('led1').checked = ledStatus;
+  });
+
+  // updating the led status in firebase when checkbox is changed
+  document.getElementById('led1').addEventListener
+  ('change', function () {
+    const ledState = this.checked;
+    set(ledRef, ledState).then(()=>{
+        console.log('LED status updated on firebase');
+    }) .catch((error)=>{
+        console.error('error updating led status : ', error);
+    });
+  });
+  
+</script>
+</body>
+</html>

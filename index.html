@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latihan 1 firebase</title>
+</head>
+
+<body>
+    <h1>MENAMPIILKAN DATA SISWA</h1>
+   <table>
+        <thead>
+            <tr>
+                <th>NIS</th>
+                <th>NAMA LENGKAP</th>
+                <th>KELAS</th>
+            </tr>
+        </thead>
+    </table>
+
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.js" integrity="sha512-+k1pnlgt4F1H8L7t3z95o3/KO+o78INEcXTbnoJQ/F2VqDVhWoaiVml/OEHv9HsVgxUaVW+IbiZPUJQfF/YxZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { ref, set, getDatabase } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDVTGLxIUOVlkKvCq1ct_Sqa__T9E3QXu8",
+        authDomain: "latihan1-17cbb.firebaseapp.com",
+        databaseURL: "https://latihan1-17cbb-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "latihan1-17cbb",
+        storageBucket: "latihan1-17cbb.firebasestorage.app",
+        messagingSenderId: "283934606351",
+        appId: "1:283934606351:web:da8361bf8804ea501a4f7a"
+    };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        // koneksi ke realtime firebase
+        const db = getDatabase(app); 
+        // referasnsi data unutk di ambil
+        const refSiswa = ref(db, "siswa");
+        // menmapilkan data 
+        const setBaris = document.getElementById("data");
+
+        onValue(refSiswa, (snapshot)=>{
+            let dataSiswa = snapshot.val()
+            console.log(dataSiswa);
+        })
+    </script>
+</body>
+
+</html>

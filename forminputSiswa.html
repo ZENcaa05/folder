@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORM INPUT SISWA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        table {
+            margin-top: 20px;
+        }
+        td {
+            padding: 8px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            width: 200px;
+        }
+        input[type="button"], input[type="reset"] {
+            padding: 5px 15px;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        .message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>FORM INPUT SISWA</h1>
+    
+    <div id="message"></div>
+    
+    <table>
+        <tr>
+            <td>NIS</td>
+            <td>:</td>
+            <td><input type="text" name="" id="Nis"></td>
+        </tr>
+        <tr>
+            <td>NAMA LENGKAP</td>
+            <td>:</td>
+            <td><input type="text" name="" id="NamaLengkap"></td>
+        </tr>
+        <tr>
+            <td>KELAS</td>
+            <td>:</td>
+            <td><input type="text" name="" id="kelas"></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td>
+                <input type="reset" value="Clear" id="reset">
+                <input type="button" value="Simpan" id="save">
+                <input type="button" value="Cari" id="cari">
+            </td>
+        </tr>
+    </table>
+
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.js" integrity="sha512-+k1pnlgt4F1H8L7t3z95o3/KO+o78INEcXTbnoJQ/F2VqDVhWoaiVml/OEHv9HsVgxUaVW+IbiZPUJQfF/YxZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-- Firebase -->
+    <script type="module">
+     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+    import { onValue, ref, set, getDatabase } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+   const firebaseConfig = {
+    apiKey: "AIzaSyDVTGLxIUOVlkKvCq1ct_Sqa__T9E3QXu8",
+    authDomain: "latihan1-17cbb.firebaseapp.com",
+    databaseURL: "https://latihan1-17cbb-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "latihan1-17cbb",
+    storageBucket: "latihan1-17cbb.firebasestorage.app",
+    messagingSenderId: "283934606351",
+    appId: "1:283934606351:web:da8361bf8804ea501a4f7a"
+  };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase();
+
+    function showMessage(msg, type) {
+        $("#message").html(`<div class="message ${type}">${msg}</div>`);
+        setTimeout(() => $("#message").html(""), 3000);
+    }
+
+    $("#reset").click(() => {
+        $("#Nis").val("");
+        $("#NamaLengkap").val("");
+        $("#kelas").val("");
+    });
+
+    $("#save").click(() => {
+        let Nis = $("#Nis").val();
+        let NamaLengkap = $("#NamaLengkap").val();
+        let kelas = $("#kelas").val();
+
+        if (!Nis || !NamaLengkap || !kelas) {
+            showMessage("Semua field harus diisi!", "error");
+            return;
+        }
+
+        console.log("NIS : " + Nis);
+        console.log("Nama Lengkap : " + NamaLengkap);
+        console.log("Kelas : " + kelas);
+
+        const refsiswa = ref(db, "siswa/" + Nis);
+        set(refsiswa, {
+            "namaLengkap": NamaLengkap,
+            "kelas": kelas
+        }).then(() => {
+            showMessage("Data berhasil disimpan!", "success");
+            $("#Nis").val("");
+            $("#NamaLengkap").val("");
+            $("#kelas").val("");
+        }).catch((error) => {
+            showMessage("Error: " + error.message, "error");
+        });
+    });
+
+    $("#cari").click(() => {
+        let Nis = $("#Nis").val();
+        let refsiswa = ref(db, "siswa/" + Nis);
+        console.log("Mencari NIS: " + Nis);
+
+        onValue(refsiswa, (snapshot) => {
+            if (snapshot.exists()) {
+                let data = snapshot.val();
+                console.log("Data ditemukan:", data);
+                
+                // Gunakan nama property yang sama dengan saat menyimpan
+                $("#NamaLengkap").val(data.namaLengkap || "");
+                $("#kelas").val(data.kelas || "");
+                
+                showMessage("Data ditemukan!", "success");
+            } else {
+                showMessage("Data tidak ditemukan!", "error");
+                $("#NamaLengkap").val("");
+                $("#kelas").val("");
+            }
+        }, {
+            onlyOnce: true
+        });
+    });
+    </script>
+</body>
+</html>
