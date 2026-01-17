@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>RFID Admin Panel</title>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<style>
+:root{
+  --bg:#0f172a;
+  --card:#020617;
+  --primary:#22c55e;
+  --danger:#ef4444;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Segoe UI, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+header{
+  padding:20px;
+  background:#020617;
+  font-size:22px;
+  font-weight:600;
+}
+
+.container{
+  padding:20px;
+  display:grid;
+  grid-template-columns: 2fr 1fr;
+  gap:20px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:12px;
+  padding:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,.3);
+}
+
+h3{
+  margin-top:0;
+  margin-bottom:15px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th,td{
+  padding:12px;
+  border-bottom:1px solid #1e293b;
+  text-align:center;
+}
+
+th{
+  color:var(--muted);
+  font-weight:500;
+}
+
+tr:hover{
+  background:#020617;
+}
+
+.badge{
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:12px;
+}
+
+.unreg{background:#7c2d12}
+.reg{background:#14532d}
+
+button{
+  border:none;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.btn-add{background:var(--primary); color:#022c22}
+.btn-add:hover{opacity:.8}
+
+input,select{
+  width:100%;
+  padding:10px;
+  margin-bottom:12px;
+  border-radius:8px;
+  border:1px solid #334155;
+  background:#020617;
+  color:white;
+}
+
+footer{
+  text-align:center;
+  padding:15px;
+  color:var(--muted);
+  font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<header>📡 RFID Attendance – Admin Panel</header>
+
+<div class="container">
+
+<!-- TABLE -->
+<div class="card">
+  <h3>Data RFID Masuk</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>UID</th>
+        <th>Status</th>
+        <th>Waktu</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="list"></tbody>
+  </table>
+</div>
+
+<!-- FORM -->
+<div class="card">
+  <h3>📝 Registrasi Kartu</h3>
+  <input type="hidden" id="uid">
+  <input type="text" id="nama" placeholder="Nama Lengkap">
+  <input type="text" id="kelas" placeholder="Kelas / Jabatan">
+  <select id="role">
+    <option>Siswa</option>
+    <option>Guru</option>
+    <option>Staff</option>
+  </select>
+  <button class="btn-add" onclick="simpan()">Simpan Data</button>
+</div>
+
+</div>
+
+<footer>RFID System © 2026</footer>
+
+<script>
+// ===== FIREBASE CONFIG =====
+const firebaseConfig = {
+  apiKey: "API_KEY",
+  authDomain: "xxxx.firebaseapp.com",
+  databaseURL: "https://xxxx-default-rtdb.firebaseio.com",
+  projectId: "xxxx",
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ===== LOAD DATA =====
+db.ref("rfid_logs").on("value", snap => {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  snap.forEach(data => {
+    const d = data.val();
+    list.innerHTML += `
+      <tr>
+        <td>${d.uid}</td>
+        <td>
+          <span class="badge ${d.status=="registered"?"reg":"unreg"}">
+            ${d.status}
+          </span>
+        </td>
+        <td>${d.timestamp}</td>
+        <td>
+          ${d.status=="unregistered"
+            ? `<button class="btn-add" onclick="daftar('${d.uid}')">Daftar</button>`
+            : "✔"}
+        </td>
+      </tr>
+    `;
+  });
+});
+
+function daftar(uid){
+  document.getElementById("uid").value = uid;
+}
+
+function simpan(){
+  const uid = uid.value;
+  const nama = document.getElementById("nama").value;
+  const kelas = document.getElementById("kelas").value;
+  const role = document.getElementById("role").value;
+
+  if(!uid||!nama||!kelas){
+    alert("Lengkapi data!");
+    return;
+  }
+
+  db.ref("users/"+uid).set({uid,nama,kelas,role});
+  db.ref("rfid_logs/"+uid+"/status").set("registered");
+
+  alert("Berhasil didaftarkan!");
+}
+</script>
+
+</body>
+</html>
