@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="id" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeCore IoT</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <script src="/_sdk/element_sdk.js"></script>
+    <script type="module" src="firebase.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+</head>
+
+<body class="h-full bg-slate-900 text-white overflow-auto">
+    <div class="min-h-full w-full bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 p-4 md:p-6">
+        <header class="mb-8 sensor-card rounded-2xl p-6 section-header">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div>
+                    <div class="flex items-center gap-4 mb-3">
+                        <div class="w-14 h-14 rounded-2xl header-accent flex items-center justify-center">
+                            <i data-lucide="leaf" class="w-8 h-8 text-white"></i>
+                        </div>
+                        <div>
+                            <h1 id="dashboard-title"
+                                class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-400 via-green-300 to-cyan-400 bg-clip-text text-transparent">
+                                HomeCore IoT </h1>
+                            <p class="text-slate-400 flex items-center gap-2 mt-1"><span id="location-name"
+                                    class="text-slate-300">Muhammad Hilmy XII K2</span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 ml-14"><span
+                            class="status-dot inline-block w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50"></span>
+                        <span class="text-emerald-400 font-medium">Real-time Monitoring</span>
+                    </div>
+                </div>
+                <div class="flex flex-col md:flex-row items-start md:items-center gap-4">
+                    <div
+                        class="px-6 py-3 rounded-xl bg-gradient-to-br from-slate-800/80 to-slate-800/40 border border-slate-700/50">
+                        <p class="text-xs text-slate-500 uppercase tracking-wider">Terakhir Update</p>
+                        <p id="last-update" class="text-lg font-bold text-emerald-400 mt-1">--:--:--</p>
+                    </div><button onclick="refreshData()"
+                        class="p-3 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50"><i
+                            data-lucide="refresh-cw" class="w-6 h-6"></i></button>
+                </div>
+            </div>
+        </header>
+
+        <!-- ===== SENSOR CARDS (4 kolom) ===== -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+            <!-- Card 1: Soil Resistance -->
+            <div class="sensor-card rounded-2xl p-5 card-glow">
+                <div class="section-header mb-4 -mx-5 px-5 py-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                            <i data-lucide="mountain" class="w-6 h-6 text-amber-400"></i>
+                        </div>
+                        <div>
+                            <p class="text-slate-400 text-sm">Kondisi Tanah</p>
+                            <p id="soil-condition" class="text-lg font-semibold text-amber-400">Lembab</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Resistansi Tanah</span> <span id="soil-resistance"
+                            class="text-slate-300 font-medium">450 Ω ohm</span>
+                    </div>
+                    <div class="h-3 rounded-full bg-slate-700/50 overflow-hidden border border-amber-500/20">
+                        <div id="soil-resistance-bar"
+                            class="moisture-bar h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 shadow-lg shadow-amber-500/50"
+                            style="width: 65%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Light Sensor (LDR) -->
+            <div class="sensor-card rounded-2xl p-5 card-glow">
+                <div class="section-header mb-4 -mx-5 px-5 py-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center">
+                            <i data-lucide="sun" class="w-6 h-6 text-yellow-400"></i>
+                        </div>
+                        <div>
+                            <p class="text-slate-400 text-sm">Sensor Cahaya (LDR)</p>
+                            <p class="text-lg font-semibold text-yellow-400">4 Titik Pengukuran</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-800/50 rounded-lg p-3">
+                        <p class="text-slate-500 text-xs mb-1">LDR 1</p>
+                        <p class="text-2xl font-bold text-yellow-400"><span id="ldr-1">850</span> <span
+                                class="text-xs text-slate-400">Ω ohm </span></p>
+                    </div>
+                    <div class="bg-slate-800/50 rounded-lg p-3">
+                        <p class="text-slate-500 text-xs mb-1">LDR 2</p>
+                        <p class="text-2xl font-bold text-yellow-400"><span id="ldr-2">920</span> <span
+                                class="text-xs text-slate-400">Ω ohm </span></p>
+                    </div>
+                    <div class="bg-slate-800/50 rounded-lg p-3">
+                        <p class="text-slate-500 text-xs mb-1">LDR 3</p>
+                        <p class="text-2xl font-bold text-yellow-400"><span id="ldr-3">780</span> <span
+                                class="text-xs text-slate-400">Ω ohm </span></p>
+                    </div>
+                    <div class="bg-slate-800/50 rounded-lg p-3">
+                        <p class="text-slate-500 text-xs mb-1">LDR 4</p>
+                        <p class="text-2xl font-bold text-yellow-400"><span id="ldr-4">890</span> <span
+                                class="text-xs text-slate-400">Ω ohm </span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Temperature -->
+            <div class="sensor-card rounded-2xl p-5 card-glow">
+                <div class="section-header mb-4 -mx-5 px-5 py-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center">
+                            <i data-lucide="thermometer" class="w-6 h-6 text-red-400"></i>
+                        </div>
+                        <div>
+                            <p class="text-slate-400 text-sm">Suhu</p>
+                            <p id="temp-status" class="text-lg font-semibold text-red-400">Normal</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center py-3">
+                    <p class="text-4xl font-bold text-white value-animate"><span id="temp-value">28</span> <span
+                            class="text-2xl text-slate-400">°C</span></p>
+                    <p class="text-slate-500 text-xs mt-2">Optimal: 20 - 30°C</p>
+                </div>
+            </div>
+
+            <!-- Card 4: Humidity -->
+            <div class="sensor-card rounded-2xl p-5 card-glow">
+                <div class="section-header mb-4 -mx-5 px-5 py-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                            <i data-lucide="droplets" class="w-6 h-6 text-cyan-400"></i>
+                        </div>
+                        <div>
+                            <p class="text-slate-400 text-sm">Kelembapan</p>
+                            <p id="humidity-status" class="text-lg font-semibold text-cyan-400">Baik</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center py-3">
+                    <p class="text-4xl font-bold text-white value-animate"><span id="humidity-value">72</span> <span
+                            class="text-2xl text-slate-400">%</span></p>
+                    <p class="text-slate-500 text-xs mt-2">Optimal: 60 - 80%</p>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ===== SERVO CARDS (2 kolom) ===== -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+
+            <!-- Card 5: Servo Horizontal -->
+            <div class="sensor-card rounded-2xl p-5 card-glow">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-12 h-12 rounded-xl bg-violet-500/20 flex items-center justify-center">
+                        <i data-lucide="move-horizontal" class="w-6 h-6 text-violet-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-sm">Sensor Servo Horizontal</p>
+                        <p class="text-lg font-semibold text-violet-400">Pendeteksi Sudut</p>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex justify-center items-center h-32">
+                        <div class="relative w-32 h-24 flex items-center justify-center">
+                            <div class="servo-base absolute bottom-0 w-20 h-6 rounded-full"></div>
+                            <div class="servo-arm absolute bottom-6 w-2 h-16 bg-gradient-to-t from-violet-500 to-violet-300 rounded-full"
+                                id="servo-h-arm" style="transform: rotateZ(0deg)"></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-800/50 rounded-lg p-4 text-center">
+                        <p class="text-slate-500 text-sm mb-2">Sudut Terdeteksi</p>
+                        <p class="text-4xl font-bold text-violet-400"><span id="servo-h-pos">0</span>°</p>
+                        <p class="text-xs text-slate-500 mt-2">Range: 0° hingga 180°</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 6: Servo Vertical -->
+            <div class="sensor-card rounded-2xl p-5 card-glow">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+                        <i data-lucide="move-vertical" class="w-6 h-6 text-indigo-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-sm">Sensor Servo Vertikal</p>
+                        <p class="text-lg font-semibold text-indigo-400">Pendeteksi Sudut</p>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex justify-center items-center h-32">
+                        <div class="relative w-24 h-32 flex items-center justify-center">
+                            <div class="servo-base absolute left-0 w-6 h-20 rounded-full"></div>
+                            <div class="servo-arm absolute left-6 w-16 h-2 bg-gradient-to-r from-indigo-500 to-indigo-300 rounded-full"
+                                id="servo-v-arm" style="transform: rotateZ(0deg)"></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-800/50 rounded-lg p-4 text-center">
+                        <p class="text-slate-500 text-sm mb-2">Sudut Terdeteksi</p>
+                        <p class="text-4xl font-bold text-indigo-400"><span id="servo-v-pos">0</span>°</p>
+                        <p class="text-xs text-slate-500 mt-2">Range: 0° hingga 180°</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ===== WATERING & CONTROL CARDS (2 kolom) ===== -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+
+            <!-- Card 7: Watering System -->
+            <div class="sensor-card rounded-2xl p-5 card-glow">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-12 h-12 rounded-xl bg-teal-500/20 flex items-center justify-center">
+                        <i data-lucide="droplets" class="w-6 h-6 text-teal-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-sm">Sistem Penyiraman</p>
+                        <p class="text-lg font-semibold text-teal-400">Kontrol Air</p>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <button id="manual-water-btn" onclick="toggleManualWater()"
+                        class="btn-led w-full flex items-center justify-between p-4 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-teal-500/50 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div id="water-manual-indicator"
+                                class="w-4 h-4 rounded-full bg-slate-600 transition-colors"></div><span
+                                class="font-medium">Siram Manual</span>
+                        </div>
+                        <div id="manual-water-status" class="text-sm text-slate-500">
+                            OFF
+                        </div>
+                    </button>
+
+                    <button id="auto-water-btn" onclick="toggleAutoWater()"
+                        class="btn-led w-full flex items-center justify-between p-4 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-teal-500/50 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div id="water-auto-indicator"
+                                class="w-5 h-5 rounded-full bg-slate-600 transition-colors flex items-center justify-center">
+                                <i data-lucide="zap" class="w-3 h-3 text-slate-400" id="auto-water-icon"></i>
+                            </div><span class="font-medium">Siram Otomatis</span>
+                        </div>
+                        <div id="auto-water-status" class="text-sm text-slate-500">
+                            OFF
+                        </div>
+                    </button>
+                </div>
+                <div class="mt-4 p-3 bg-slate-800/50 rounded-lg text-sm text-slate-400">
+                    <p class="flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> <span>Siram Otomatis
+                            akan aktif saat level air di bawah 40%</span></p>
+                </div>
+            </div>
+
+            <!-- Card 8: Watering Status -->
+            <div class="sensor-card rounded-2xl p-5 card-glow">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                        <i data-lucide="activity" class="w-6 h-6 text-blue-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-sm">Status Penyiraman</p>
+                        <p class="text-lg font-semibold text-blue-400">Informasi</p>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <div class="bg-slate-800/50 rounded-xl p-4">
+                        <p class="text-slate-500 text-sm mb-2">Mode Aktif</p>
+                        <p id="watering-mode" class="text-xl font-bold text-blue-400">Mode Manual</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-800/50 rounded-lg p-3">
+                            <p class="text-slate-500 text-xs mb-1">Total Penyiraman</p>
+                            <p id="total-watering" class="text-lg font-bold text-emerald-400">0 Kali</p>
+                        </div>
+                        <div class="bg-slate-800/50 rounded-lg p-3">
+                            <p class="text-slate-500 text-xs mb-1">Durasi Terakhir</p>
+                            <p id="last-watering-duration" class="text-lg font-bold text-cyan-400">-- detik</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ===== TANK & LED CONTROL (3 kolom) ===== -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+
+            <!-- Card 9: Water Tank Status -->
+            <div class="sensor-card rounded-2xl p-5 card-glow lg:col-span-2">
+                <div class="flex items-center justify-between gap-3 mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                            <i data-lucide="waves" class="w-6 h-6 text-blue-400"></i>
+                        </div>
+                        <div>
+                            <p class="text-slate-400 text-sm">Tangki Air</p>
+                            <p class="text-lg font-semibold text-blue-400">Status Tangki</p>
+                        </div>
+                    </div><button onclick="openTankModal()"
+                        class="p-2 rounded-lg bg-gradient-to-r from-blue-600/30 to-cyan-600/30 border border-blue-500/50 hover:border-blue-400 transition-colors">
+                        <i data-lucide="edit-3" class="w-5 h-5 text-blue-400"></i> </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="flex flex-col items-center">
+                        <div
+                            class="water-container w-24 h-40 rounded-2xl border-2 border-blue-400/30 relative overflow-hidden">
+                            <div id="water-fill" class="water-fill absolute bottom-0 left-0 right-0"
+                                style="height: 75%"></div>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span id="water-level-percent"
+                                    class="text-2xl font-bold text-white drop-shadow-lg">75%</span>
+                            </div>
+                        </div>
+                        <p class="text-slate-500 text-sm mt-2">Level Air</p>
+                    </div>
+                    <div class="md:col-span-2 grid grid-cols-2 gap-4">
+                        <div class="bg-slate-800/50 rounded-xl p-4">
+                            <p class="text-slate-500 text-sm mb-1">Tinggi Air</p>
+                            <p class="text-2xl font-bold text-blue-400"><span id="water-height">45</span> <span
+                                    class="text-lg text-slate-400">cm</span></p>
+                        </div>
+                        <div class="bg-slate-800/50 rounded-xl p-4">
+                            <p class="text-slate-500 text-sm mb-1">Volume Air</p>
+                            <p class="text-2xl font-bold text-blue-400"><span id="water-volume">450</span> <span
+                                    class="text-lg text-slate-400">L</span></p>
+                            <p class="text-xs text-slate-500 mt-1"><span id="water-volume-ml">450000</span> ml</p>
+                        </div>
+                        <div class="bg-slate-800/50 rounded-xl p-4">
+                            <p class="text-slate-500 text-sm mb-1">Kapasitas</p>
+                            <p class="text-2xl font-bold text-slate-300"><span id="tank-capacity">600</span><span
+                                    class="text-lg text-slate-400">L</span></p>
+                        </div>
+                        <div class="bg-slate-800/50 rounded-xl p-4">
+                            <p class="text-slate-500 text-sm mb-1">Status</p>
+                            <p id="water-status" class="text-lg font-bold text-emerald-400">Cukup</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 10: LED & Lamp Control -->
+            <div class="sensor-card rounded-2xl p-5 card-glow">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center">
+                        <i data-lucide="lightbulb" class="w-6 h-6 text-yellow-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-sm">Kontrol</p>
+                        <p class="text-lg font-semibold text-yellow-400">LED &amp; Lampu</p>
+                    </div>
+                </div>
+                <div class="space-y-3"><button id="led1-btn" onclick="toggleLED(1)"
+                        class="btn-led w-full flex items-center justify-between p-4 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-red-500/50">
+                        <div class="flex items-center gap-3">
+                            <div id="led1-indicator" class="w-4 h-4 rounded-full bg-slate-600 transition-colors"></div>
+                            <span class="font-medium">LED Merah</span>
+                        </div>
+                        <div id="led1-status" class="text-sm text-slate-500">
+                            OFF
+                        </div>
+                    </button> <button id="led2-btn" onclick="toggleLED(2)"
+                        class="btn-led w-full flex items-center justify-between p-4 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-green-500/50">
+                        <div class="flex items-center gap-3">
+                            <div id="led2-indicator" class="w-4 h-4 rounded-full bg-slate-600 transition-colors"></div>
+                            <span class="font-medium">LED Hijau</span>
+                        </div>
+                        <div id="led2-status" class="text-sm text-slate-500">
+                            OFF
+                        </div>
+                    </button> <button id="led3-btn" onclick="toggleLED(3)"
+                        class="btn-led w-full flex items-center justify-between p-4 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-blue-500/50">
+                        <div class="flex items-center gap-3">
+                            <div id="led3-indicator" class="w-4 h-4 rounded-full bg-slate-600 transition-colors"></div>
+                            <span class="font-medium">LED Biru</span>
+                        </div>
+                        <div id="led3-status" class="text-sm text-slate-500">
+                            OFF
+                        </div>
+                    </button> <button id="lamp-btn" onclick="toggleLamp()"
+                        class="btn-led w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-yellow-600/20 to-orange-600/20 border border-yellow-500/30 hover:border-yellow-400">
+                        <div class="flex items-center gap-3">
+                            <div id="lamp-indicator"
+                                class="w-6 h-6 rounded-full bg-slate-600 transition-colors flex items-center justify-center">
+                                <i data-lucide="sun" class="w-4 h-4 text-slate-400" id="lamp-icon"></i>
+                            </div><span class="font-medium">Lampu Utama</span>
+                        </div>
+                        <div id="lamp-status" class="text-sm text-slate-500">
+                            OFF
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div><!-- ===== FOOTER STATS ===== -->
+        <footer class="sensor-card rounded-2xl p-6 section-header">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="stat-box rounded-lg p-4 text-center">
+                    <p class="text-slate-400 text-xs uppercase tracking-wider mb-2">Total Sensor</p>
+                    <p class="text-3xl font-bold text-emerald-400">8</p>
+                </div>
+                <div class="stat-box rounded-lg p-4 text-center">
+                    <p class="text-slate-400 text-xs uppercase tracking-wider mb-2">Aktuator Aktif</p>
+                    <p id="active-actuators" class="text-3xl font-bold text-cyan-400">0</p>
+                </div>
+                <div class="stat-box rounded-lg p-4 text-center">
+                    <p class="text-slate-400 text-xs uppercase tracking-wider mb-2">Uptime</p>
+                    <p class="text-3xl font-bold text-purple-400">99.8%</p>
+                </div>
+                <div class="stat-box rounded-lg p-4 text-center">
+                    <p class="text-slate-400 text-xs uppercase tracking-wider mb-2">Koneksi</p>
+                    <p class="text-3xl font-bold text-green-400">Stabil</p>
+                </div>
+            </div>
+        </footer>
+        <div id="tank-modal"
+            class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div
+                class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 max-w-md w-full border border-slate-700/50 shadow-2xl">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-3"><i data-lucide="settings"
+                            class="w-6 h-6 text-blue-400"></i> Konfigurasi Tangki</h2><button onclick="closeTankModal()"
+                        class="p-1 rounded-lg hover:bg-slate-700/50 transition-colors"> <i data-lucide="x"
+                            class="w-6 h-6 text-slate-400"></i> </button>
+                </div>
+                <div class="space-y-4 mb-6">
+                    <div><label class="text-sm text-slate-400 block mb-2 font-semibold">Bentuk Tangki</label> <select
+                            id="tank-shape-select" onchange="toggleTankShapeFields()"
+                            class="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                            <option value="kubus">📦 Kubus (Kotak) - Panjang × Lebar × Tinggi</option>
+                            <option value="tabung">🔴 Tabung (Silinder) - Jari-jari × Tinggi</option>
+                        </select>
+                    </div>
+                    <div id="kubus-fields" class="space-y-3">
+                        <div class="bg-slate-800/30 rounded-lg p-3 border border-slate-700/30"><label
+                                class="text-xs text-slate-500 uppercase tracking-wider block mb-1">📐 Dimensi
+                                Kubus</label>
+                            <div class="space-y-3">
+                                <div><label class="text-sm text-slate-300 block mb-1">Panjang (cm)</label> <input
+                                        type="number" id="tank-length" value="60" oninput="updateCapacityDisplay()"
+                                        class="w-full bg-slate-700/50 border border-slate-600 rounded-lg p-2 text-white focus:outline-none focus:border-blue-400 transition-colors"
+                                        min="1">
+                                </div>
+                                <div><label class="text-sm text-slate-300 block mb-1">Lebar (cm)</label> <input
+                                        type="number" id="tank-width" value="40" oninput="updateCapacityDisplay()"
+                                        class="w-full bg-slate-700/50 border border-slate-600 rounded-lg p-2 text-white focus:outline-none focus:border-blue-400 transition-colors"
+                                        min="1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tabung-fields" class="hidden space-y-3">
+                        <div class="bg-slate-800/30 rounded-lg p-3 border border-slate-700/30"><label
+                                class="text-xs text-slate-500 uppercase tracking-wider block mb-1">⭕ Dimensi
+                                Tabung</label>
+                            <div><label class="text-sm text-slate-300 block mb-1">Jari-jari (cm)</label> <input
+                                    type="number" id="tank-radius" value="20" oninput="updateCapacityDisplay()"
+                                    class="w-full bg-slate-700/50 border border-slate-600 rounded-lg p-2 text-white focus:outline-none focus:border-blue-400 transition-colors"
+                                    min="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-800/30 rounded-lg p-3 border border-slate-700/30"><label
+                            class="text-sm text-slate-300 block mb-1">📏 Tinggi (cm)</label> <input type="number"
+                            id="tank-height" value="60" oninput="updateCapacityDisplay()"
+                            class="w-full bg-slate-700/50 border border-slate-600 rounded-lg p-2 text-white focus:outline-none focus:border-blue-400 transition-colors"
+                            min="1">
+                    </div>
+                </div>
+                <div
+                    class="bg-gradient-to-br from-blue-900/40 to-cyan-900/40 rounded-lg p-4 mb-6 border border-blue-500/30">
+                    <p class="text-xs text-blue-300 uppercase tracking-wider mb-2 font-semibold">💧 Kapasitas Tangki</p>
+                    <p id="capacity-display" class="text-3xl font-bold text-blue-300">600 L</p>
+                    <p class="text-xs text-slate-400 mt-2">Volume maksimal air yang dapat ditampung</p>
+                </div>
+                <div class="flex gap-3"><button onclick="saveTankConfig()"
+                        class="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold py-3 rounded-lg transition-all shadow-lg hover:shadow-blue-500/50">
+                        <i data-lucide="check" class="w-4 h-4 inline mr-2"></i>Simpan </button> <button
+                        onclick="closeTankModal()"
+                        class="flex-1 bg-slate-700/50 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-lg transition-colors">
+                        Batal </button>
+                </div>
+            </div>
+        </div>
+        <script src="app.js"></script>
+    </div>
+    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'9eaaa97d01dfb59c',t:'MTc3NTkxNzU0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+</body>
+
+</html>
