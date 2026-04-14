@@ -1,0 +1,1145 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Farm IoT Dashboard</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyBYUCGcfOUUCLxU_nOn54fiPReZDXgn-0E",
+      authDomain: "ujikom-3250b.firebaseapp.com",
+      databaseURL: "https://ujikom-3250b-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ujikom-3250b",
+      storageBucket: "ujikom-3250b.firebasestorage.app",
+      messagingSenderId: "213039342419",
+      appId: "1:213039342419:web:c21b952cd16cb715e2f7a6"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    
+    window.firebaseDB = {
+      database,
+      ref,
+      onValue,
+      set
+    };
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Space Grotesk', sans-serif; }
+    body { background: linear-gradient(135deg, #0f172a 0%, #1a1f35 50%, #0d1928 100%); }
+    .card-glow { box-shadow: 0 0 60px rgba(34, 197, 94, 0.15), inset 0 1px 0 rgba(255,255,255,0.1); }
+    .sensor-card { 
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .sensor-card:hover { 
+      border-color: rgba(148, 163, 184, 0.4);
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.7) 100%);
+      transform: translateY(-2px);
+    }
+    .btn-led { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .btn-led.active { box-shadow: 0 0 30px currentColor; }
+    .water-container { background: linear-gradient(180deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.4) 100%); border-color: rgba(59, 130, 246, 0.5); }
+    .water-fill { background: linear-gradient(180deg, #00d4ff 0%, #0099cc 100%); transition: height 0.5s ease-out; box-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
+    .value-animate { animation: value-pop 0.3s ease-out; }
+    @keyframes value-pop { 0% { transform: scale(0.95); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+    .moisture-bar { transition: width 0.5s ease-out; }
+    .status-dot { animation: blink 2s ease-in-out infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .servo-arm { transform-origin: center bottom; transition: transform 0.3s ease-out; }
+    .servo-base { background: linear-gradient(135deg, #64748b 0%, #475569 100%); box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.3); }
+    
+    .stat-box {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      transition: all 0.3s ease;
+    }
+    .stat-box:hover {
+      border-color: rgba(34, 197, 94, 0.6);
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
+    }
+    
+    .header-accent {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 0 40px rgba(16, 185, 129, 0.3);
+    }
+    
+    .section-header {
+      background: linear-gradient(90deg, rgba(34, 197, 94, 0.1) 0%, transparent 100%);
+      border-left: 3px solid #10b981;
+      padding-left: 16px;
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-slate-900 text-white overflow-auto">
+  <div class="min-h-full w-full bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 p-4 md:p-6">
+   <header class="mb-8 sensor-card rounded-2xl p-6 section-header">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+     <div>
+      <div class="flex items-center gap-4 mb-3">
+       <div class="w-14 h-14 rounded-2xl header-accent flex items-center justify-center">
+        <i data-lucide="leaf" class="w-8 h-8 text-white"></i>
+       </div>
+       <div>
+        <h1 id="dashboard-title" class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-400 via-green-300 to-cyan-400 bg-clip-text text-transparent">Smart Farm IoT</h1>
+        <p class="text-slate-400 flex items-center gap-2 mt-1"><i data-lucide="map-pin" class="w-4 h-4 text-emerald-500"></i> <span id="location-name" class="text-slate-300">Greenhouse A</span></p>
+       </div>
+      </div>
+      <div class="flex items-center gap-3 ml-14"><span class="status-dot inline-block w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50"></span> <span class="text-emerald-400 font-medium">Online • Real-time Monitoring</span>
+      </div>
+     </div>
+     <div class="flex flex-col md:flex-row items-start md:items-center gap-4">
+      <div class="px-6 py-3 rounded-xl bg-gradient-to-br from-slate-800/80 to-slate-800/40 border border-slate-700/50">
+       <p class="text-xs text-slate-500 uppercase tracking-wider">Terakhir Update</p>
+       <p id="last-update" class="text-lg font-bold text-emerald-400 mt-1">--:--:--</p>
+      </div><button onclick="refreshData()" class="p-3 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50"><i data-lucide="refresh-cw" class="w-6 h-6"></i></button>
+     </div>
+    </div>
+   </header>
+   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="sensor-card rounded-2xl p-5 card-glow">
+     <div class="section-header mb-4 -mx-5 px-5 py-3">
+      <div class="flex items-center gap-3">
+       <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
+        <i data-lucide="mountain" class="w-6 h-6 text-amber-400"></i>
+       </div>
+       <div>
+        <p class="text-slate-400 text-sm">Kondisi Tanah</p>
+        <p id="soil-condition" class="text-lg font-semibold text-amber-400">Lembab</p>
+       </div>
+      </div>
+     </div>
+     <div class="space-y-2">
+      <div class="flex justify-between text-sm">
+       <span class="text-slate-500">Resistansi Tanah</span> <span id="soil-resistance" class="text-slate-300 font-medium">450 Ω</span>
+      </div>
+      <div class="h-3 rounded-full bg-slate-700/50 overflow-hidden border border-amber-500/20">
+       <div id="soil-resistance-bar" class="moisture-bar h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 shadow-lg shadow-amber-500/50" style="width: 65%"></div>
+      </div>
+     </div>
+    </div>
+    <div class="sensor-card rounded-2xl p-5 card-glow">
+     <div class="section-header mb-4 -mx-5 px-5 py-3">
+      <div class="flex items-center gap-3">
+       <div class="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center">
+        <i data-lucide="zap" class="w-6 h-6 text-orange-400"></i>
+       </div>
+       <div>
+        <p class="text-slate-400 text-sm">Tegangan AC</p>
+        <p id="voltage-status" class="text-lg font-semibold text-orange-400">Normal</p>
+       </div>
+      </div>
+     </div>
+     <div class="text-center py-3">
+      <p class="text-4xl font-bold text-white value-animate"><span id="voltage-value">220</span> <span class="text-2xl text-slate-400">V</span></p>
+      <p class="text-slate-500 text-xs mt-2">Optimal: 190 - 240V</p>
+     </div>
+     <div class="mt-4">
+      <div class="flex justify-between text-sm mb-2">
+       <span class="text-slate-500">Arus</span> <span id="current-value" class="text-slate-300 font-medium">5.2 A</span>
+      </div>
+      <div class="h-3 rounded-full bg-slate-700/50 overflow-hidden border border-orange-500/20">
+       <div id="current-bar" class="moisture-bar h-full rounded-full bg-gradient-to-r from-orange-500 to-red-400 shadow-lg shadow-orange-500/50" style="width: 65%"></div>
+      </div>
+      <p class="text-xs text-slate-500 mt-2">Max: 8A</p>
+     </div>
+    </div>
+    <div class="sensor-card rounded-2xl p-5 card-glow">
+     <div class="section-header mb-4 -mx-5 px-5 py-3">
+      <div class="flex items-center gap-3">
+       <div class="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center">
+        <i data-lucide="thermometer" class="w-6 h-6 text-red-400"></i>
+       </div>
+       <div>
+        <p class="text-slate-400 text-sm">Suhu</p>
+        <p id="temp-status" class="text-lg font-semibold text-red-400">Normal</p>
+       </div>
+      </div>
+     </div>
+     <div class="text-center py-3">
+      <p class="text-4xl font-bold text-white value-animate"><span id="temp-value">28</span> <span class="text-2xl text-slate-400">°C</span></p>
+      <p class="text-slate-500 text-xs mt-2">Optimal: 20 - 30°C</p>
+     </div>
+    </div>
+    <div class="sensor-card rounded-2xl p-5 card-glow">
+     <div class="section-header mb-4 -mx-5 px-5 py-3">
+      <div class="flex items-center gap-3">
+       <div class="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+        <i data-lucide="droplets" class="w-6 h-6 text-cyan-400"></i>
+       </div>
+       <div>
+        <p class="text-slate-400 text-sm">Kelembapan</p>
+        <p id="humidity-status" class="text-lg font-semibold text-cyan-400">Baik</p>
+       </div>
+      </div>
+     </div>
+     <div class="text-center py-3">
+      <p class="text-4xl font-bold text-white value-animate"><span id="humidity-value">72</span> <span class="text-2xl text-slate-400">%</span></p>
+      <p class="text-slate-500 text-xs mt-2">Optimal: 60 - 80%</p>
+     </div>
+    </div>
+   </div>
+   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div class="sensor-card rounded-2xl p-5 card-glow">
+     <div class="flex items-center gap-3 mb-5">
+      <div class="w-12 h-12 rounded-xl bg-teal-500/20 flex items-center justify-center">
+       <i data-lucide="droplets" class="w-6 h-6 text-teal-400"></i>
+      </div>
+      <div>
+       <p class="text-slate-400 text-sm">Sistem Penyiraman</p>
+       <p class="text-lg font-semibold text-teal-400">Kontrol Air</p>
+      </div>
+     </div>
+     <div class="space-y-3">
+      <button id="manual-water-btn" onclick="toggleManualWater()" class="btn-led w-full flex items-center justify-between p-4 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-teal-500/50 transition-colors">
+       <div class="flex items-center gap-3">
+        <div id="water-manual-indicator" class="w-4 h-4 rounded-full bg-slate-600 transition-colors"></div><span class="font-medium">Siram Manual</span>
+       </div>
+       <div id="manual-water-status" class="text-sm text-slate-500">
+        OFF
+       </div></button> <button id="auto-water-btn" onclick="toggleAutoWater()" class="btn-led w-full flex items-center justify-between p-4 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-teal-500/50 transition-colors">
+       <div class="flex items-center gap-3">
+        <div id="water-auto-indicator" class="w-5 h-5 rounded-full bg-slate-600 transition-colors flex items-center justify-center">
+         <i data-lucide="zap" class="w-3 h-3 text-slate-400" id="auto-water-icon"></i>
+        </div><span class="font-medium">Siram Otomatis</span>
+       </div>
+       <div id="auto-water-status" class="text-sm text-slate-500">
+        OFF
+       </div></button>
+     </div>
+     <div class="mt-4 p-3 bg-slate-800/50 rounded-lg text-sm text-slate-400">
+      <p class="flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> <span>Siram Otomatis akan aktif saat level air di bawah 40%</span></p>
+     </div>
+    </div>
+    <div class="sensor-card rounded-2xl p-5 card-glow">
+     <div class="flex items-center gap-3 mb-5">
+      <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+       <i data-lucide="activity" class="w-6 h-6 text-blue-400"></i>
+      </div>
+      <div>
+       <p class="text-slate-400 text-sm">Status Penyiraman</p>
+       <p class="text-lg font-semibold text-blue-400">Informasi</p>
+      </div>
+     </div>
+     <div class="space-y-3">
+      <div class="bg-slate-800/50 rounded-xl p-4">
+       <p class="text-slate-500 text-sm mb-2">Mode Aktif</p>
+       <p id="watering-mode" class="text-xl font-bold text-blue-400">Mode Manual</p>
+      </div>
+      <div class="bg-slate-800/50 rounded-lg p-3 mb-3">
+       <p class="text-slate-500 text-xs mb-2">Total Penyiraman</p>
+       <p id="total-watering" class="text-2xl font-bold text-emerald-400">0 Kali</p>
+      </div><button onclick="resetTotalWatering()" class="w-full bg-gradient-to-r from-red-600/50 to-orange-600/50 hover:from-red-600 hover:to-orange-600 text-white font-bold py-2 rounded-lg transition-all border border-red-500/50"> <i data-lucide="rotate-ccw" class="w-4 h-4 inline mr-2"></i>Reset Total </button>
+     </div>
+    </div>
+   </div>
+   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+    <div class="sensor-card rounded-2xl p-5 card-glow lg:col-span-2">
+     <div class="flex items-center justify-between gap-3 mb-4">
+      <div class="flex items-center gap-3">
+       <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+        <i data-lucide="waves" class="w-6 h-6 text-blue-400"></i>
+       </div>
+       <div>
+        <p class="text-slate-400 text-sm">Tangki Air</p>
+        <p class="text-lg font-semibold text-blue-400">Status Tangki</p>
+       </div>
+      </div><button onclick="openTankModal()" class="p-2 rounded-lg bg-gradient-to-r from-blue-600/30 to-cyan-600/30 border border-blue-500/50 hover:border-blue-400 transition-colors"> <i data-lucide="edit-3" class="w-5 h-5 text-blue-400"></i> </button>
+     </div>
+     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="flex flex-col items-center">
+       <div class="water-container w-24 h-40 rounded-2xl border-2 border-blue-400/30 relative overflow-hidden">
+        <div id="water-fill" class="water-fill absolute bottom-0 left-0 right-0" style="height: 75%"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+         <span id="water-level-percent" class="text-2xl font-bold text-white drop-shadow-lg">75%</span>
+        </div>
+       </div>
+       <p class="text-slate-500 text-sm mt-2">Level Air</p>
+      </div>
+      <div class="md:col-span-2 grid grid-cols-2 gap-4">
+       <div class="bg-slate-800/50 rounded-xl p-4">
+        <p class="text-slate-500 text-sm mb-1">Tinggi Air</p>
+        <p class="text-2xl font-bold text-blue-400"><span id="water-height">45</span> <span class="text-lg text-slate-400">cm</span></p>
+       </div>
+       <div class="bg-slate-800/50 rounded-xl p-4">
+        <p class="text-slate-500 text-sm mb-1">Volume Air</p>
+        <p class="text-2xl font-bold text-blue-400"><span id="water-volume">450</span> <span class="text-lg text-slate-400">L</span></p>
+        <p class="text-xs text-slate-500 mt-1"><span id="water-volume-ml">450000</span> ml</p>
+       </div>
+       <div class="bg-slate-800/50 rounded-xl p-4">
+        <p class="text-slate-500 text-sm mb-1">Kapasitas</p>
+        <p class="text-2xl font-bold text-slate-300"><span id="tank-capacity">600</span><span class="text-lg text-slate-400">L</span></p>
+       </div>
+       <div class="bg-slate-800/50 rounded-xl p-4">
+        <p class="text-slate-500 text-sm mb-1">Status</p>
+        <p id="water-status" class="text-lg font-bold text-emerald-400">Cukup</p>
+       </div>
+      </div>
+     </div>
+    </div>
+    <div class="sensor-card rounded-2xl p-5 card-glow">
+     <div class="flex items-center gap-3 mb-6">
+      <div class="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center">
+       <i data-lucide="lightbulb" class="w-6 h-6 text-yellow-400"></i>
+      </div>
+      <div>
+       <p class="text-slate-400 text-sm">Kontrol</p>
+       <p class="text-lg font-semibold text-yellow-400">LED &amp; Lampu</p>
+      </div>
+     </div>
+     <div class="space-y-3"><button id="led1-btn" onclick="toggleLED(1)" class="btn-led w-full flex items-center justify-between p-4 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-red-500/50">
+       <div class="flex items-center gap-3">
+        <div id="led1-indicator" class="w-4 h-4 rounded-full bg-slate-600 transition-colors"></div><span class="font-medium">LED Merah</span>
+       </div>
+       <div id="led1-status" class="text-sm text-slate-500">
+        OFF
+       </div></button> <button id="led2-btn" onclick="toggleLED(2)" class="btn-led w-full flex items-center justify-between p-4 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-green-500/50">
+       <div class="flex items-center gap-3">
+        <div id="led2-indicator" class="w-4 h-4 rounded-full bg-slate-600 transition-colors"></div><span class="font-medium">LED Hijau</span>
+       </div>
+       <div id="led2-status" class="text-sm text-slate-500">
+        OFF
+       </div></button> <button id="led3-btn" onclick="toggleLED(3)" class="btn-led w-full flex items-center justify-between p-4 rounded-xl bg-slate-800/80 border border-slate-700 hover:border-blue-500/50">
+       <div class="flex items-center gap-3">
+        <div id="led3-indicator" class="w-4 h-4 rounded-full bg-slate-600 transition-colors"></div><span class="font-medium">LED Biru</span>
+       </div>
+       <div id="led3-status" class="text-sm text-slate-500">
+        OFF
+       </div></button> <button id="lamp-btn" onclick="toggleLamp()" class="btn-led w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-yellow-600/20 to-orange-600/20 border border-yellow-500/30 hover:border-yellow-400">
+       <div class="flex items-center gap-3">
+        <div id="lamp-indicator" class="w-6 h-6 rounded-full bg-slate-600 transition-colors flex items-center justify-center">
+         <i data-lucide="sun" class="w-4 h-4 text-slate-400" id="lamp-icon"></i>
+        </div><span class="font-medium">Lampu Utama</span>
+       </div>
+       <div id="lamp-status" class="text-sm text-slate-500">
+        OFF
+       </div></button>
+     </div>
+    </div>
+   </div>
+   <footer class="sensor-card rounded-2xl p-6 section-header">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+     <div class="stat-box rounded-lg p-4 text-center">
+      <p class="text-slate-400 text-xs uppercase tracking-wider mb-2">Total Sensor</p>
+      <p class="text-3xl font-bold text-emerald-400">8</p>
+     </div>
+     <div class="stat-box rounded-lg p-4 text-center">
+      <p class="text-slate-400 text-xs uppercase tracking-wider mb-2">Aktuator Aktif</p>
+      <p id="active-actuators" class="text-3xl font-bold text-cyan-400">0</p>
+     </div>
+     <div class="stat-box rounded-lg p-4 text-center">
+      <p class="text-slate-400 text-xs uppercase tracking-wider mb-2">Uptime</p>
+      <p class="text-3xl font-bold text-purple-400">99.8%</p>
+     </div>
+     <div class="stat-box rounded-lg p-4 text-center">
+      <p class="text-slate-400 text-xs uppercase tracking-wider mb-2">Koneksi</p>
+      <p class="text-3xl font-bold text-green-400">Stabil</p>
+     </div>
+    </div>
+   </footer>
+   <div id="tank-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 max-w-md w-full border border-slate-700/50 shadow-2xl">
+     <div class="flex items-center justify-between mb-6">
+      <h2 class="text-2xl font-bold text-white flex items-center gap-3"><i data-lucide="settings" class="w-6 h-6 text-blue-400"></i> Konfigurasi Tangki</h2><button onclick="closeTankModal()" class="p-1 rounded-lg hover:bg-slate-700/50 transition-colors"> <i data-lucide="x" class="w-6 h-6 text-slate-400"></i> </button>
+     </div>
+     <div class="space-y-4 mb-6">
+      <div><label class="text-sm text-slate-400 block mb-2 font-semibold">Bentuk Tangki</label> <select id="tank-shape-select" onchange="toggleTankShapeFields()" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 transition-colors"> <option value="kubus">📦 Kubus (Kotak) - Panjang × Lebar × Tinggi</option> <option value="tabung">🔴 Tabung (Silinder) - Jari-jari × Tinggi</option> </select>
+      </div>
+      <div id="kubus-fields" class="space-y-3">
+       <div class="bg-slate-800/30 rounded-lg p-3 border border-slate-700/30"><label class="text-xs text-slate-500 uppercase tracking-wider block mb-1">📐 Dimensi Kubus</label>
+        <div class="space-y-3">
+         <div><label class="text-sm text-slate-300 block mb-1">Panjang (cm)</label> <input type="number" id="tank-length" value="60" oninput="updateCapacityDisplay()" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg p-2 text-white focus:outline-none focus:border-blue-400 transition-colors" min="1">
+         </div>
+         <div><label class="text-sm text-slate-300 block mb-1">Lebar (cm)</label> <input type="number" id="tank-width" value="40" oninput="updateCapacityDisplay()" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg p-2 text-white focus:outline-none focus:border-blue-400 transition-colors" min="1">
+         </div>
+        </div>
+       </div>
+      </div>
+      <div id="tabung-fields" class="hidden space-y-3">
+       <div class="bg-slate-800/30 rounded-lg p-3 border border-slate-700/30"><label class="text-xs text-slate-500 uppercase tracking-wider block mb-1">⭕ Dimensi Tabung</label>
+        <div><label class="text-sm text-slate-300 block mb-1">Jari-jari (cm)</label> <input type="number" id="tank-radius" value="20" oninput="updateCapacityDisplay()" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg p-2 text-white focus:outline-none focus:border-blue-400 transition-colors" min="1">
+        </div>
+       </div>
+      </div>
+      <div class="bg-slate-800/30 rounded-lg p-3 border border-slate-700/30"><label class="text-sm text-slate-300 block mb-1">📏 Tinggi (cm)</label> <input type="number" id="tank-height" value="60" oninput="updateCapacityDisplay()" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg p-2 text-white focus:outline-none focus:border-blue-400 transition-colors" min="1">
+      </div>
+     </div>
+     <div class="bg-gradient-to-br from-blue-900/40 to-cyan-900/40 rounded-lg p-4 mb-6 border border-blue-500/30">
+      <p class="text-xs text-blue-300 uppercase tracking-wider mb-2 font-semibold">💧 Kapasitas Tangki</p>
+      <p id="capacity-display" class="text-3xl font-bold text-blue-300">600 L</p>
+      <p class="text-xs text-slate-400 mt-2">Volume maksimal air yang dapat ditampung</p>
+     </div>
+     <div class="flex gap-3"><button onclick="saveTankConfig()" class="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold py-3 rounded-lg transition-all shadow-lg hover:shadow-blue-500/50"> <i data-lucide="check" class="w-4 h-4 inline mr-2"></i>Simpan </button> <button onclick="closeTankModal()" class="flex-1 bg-slate-700/50 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-lg transition-colors"> Batal </button>
+     </div>
+    </div>
+   </div>
+   <script>
+    // ==========================================
+    // DEKLARASI VARIABEL GLOBAL & STATE
+    // ==========================================
+    // Status LED 1, 2, 3 (true = ON, false = OFF)
+    const ledStates = { 1: false, 2: false, 3: false };
+    
+    // Status perangkat lainnya
+    let lampState = false,           // Status Lampu Utama
+        manualWaterState = false,    // Status Siram Manual
+        autoWaterState = false;      // Status Siram Otomatis
+
+    // Statistik penyiraman
+    let totalWateringCount = 0;      // Total jumlah penyiraman
+
+    // Posisi servo motors
+    let servoHPos = 0,               // Posisi servo horizontal (0-180°)
+        servoVPos = 0;               // Posisi servo vertikal (0-180°)
+
+    // Timer untuk cooldown penyiraman manual
+    let wateringCooldown = 0;        // Sisa waktu cooldown (detik)
+    let cooldownInterval = null;     // Interval ID untuk cooldown timer
+
+    // ==========================================
+    // KONFIGURASI WARNA & GAYA LED
+    // ==========================================
+    const ledColors = {
+      1: { on: 'bg-red-500', shadow: 'shadow-red-500/50', border: 'border-red-500' },
+      2: { on: 'bg-green-500', shadow: 'shadow-green-500/50', border: 'border-green-500' },
+      3: { on: 'bg-blue-500', shadow: 'shadow-blue-500/50', border: 'border-blue-500' }
+    };
+
+    // ==========================================
+    // KONFIGURASI DEFAULT DASHBOARD
+    // ==========================================
+    const defaultConfig = {
+      dashboard_title: 'Smart Farm IoT',
+      location_name: 'Greenhouse A',
+      auto_water_threshold: '40',
+      tank_shape: 'kubus',
+      tank_length: 60,
+      tank_width: 40,
+      tank_height: 60,
+      primary_color: '#10b981',
+      secondary_color: '#1e293b',
+      text_color: '#f1f5f9',
+      accent_color: '#fbbf24',
+      surface_color: '#334155'
+    };
+
+    // Konfigurasi tangki air yang dapat diubah
+    let tankConfig = { ...defaultConfig };
+
+    // ==========================================
+    // FUNGSI PERHITUNGAN KAPASITAS TANGKI
+    // ==========================================
+    // Menghitung kapasitas tangki berdasarkan bentuk (kubus atau tabung)
+    function calculateTankCapacity() {
+      if (tankConfig.tank_shape === 'kubus') {
+        // Volume kubus = panjang × lebar × tinggi (dibagi 1000 untuk konversi ke liter)
+        return (tankConfig.tank_length * tankConfig.tank_width * tankConfig.tank_height) / 1000;
+      } else {
+        // Volume tabung = π × r² × tinggi (dibagi 1000 untuk konversi ke liter)
+        return (Math.PI * Math.pow(tankConfig.tank_length, 2) * tankConfig.tank_height) / 1000;
+      }
+    }
+
+    // Menghitung volume air pada ketinggian tertentu
+    function calculateWaterVolume(waterHeight) {
+      if (tankConfig.tank_shape === 'kubus') {
+        return (tankConfig.tank_length * tankConfig.tank_width * waterHeight) / 1000;
+      } else {
+        return (Math.PI * Math.pow(tankConfig.tank_length, 2) * waterHeight) / 1000;
+      }
+    }
+
+    // ==========================================
+    // FUNGSI UPDATE TAMPILAN TANGKI AIR
+    // ==========================================
+    // Update visual tangki air: tinggi, volume, persentase, status
+    function updateWaterDisplay(waterHeight) {
+      const maxHeight = tankConfig.tank_height;
+      const actualHeight = Math.min(waterHeight, maxHeight);
+      const waterVolume = calculateWaterVolume(actualHeight);
+      const capacity = calculateTankCapacity();
+      const waterPercent = Math.floor((waterVolume / capacity) * 100);
+      
+      // Update elemen DOM dengan nilai air terbaru
+      $('#water-height').text(actualHeight.toFixed(1));
+      $('#water-volume').text(waterVolume.toFixed(1));
+      $('#water-volume-ml').text((waterVolume * 1000).toLocaleString('id-ID'));
+      $('#water-fill').css('height', waterPercent + '%');
+      $('#water-level-percent').text(waterPercent + '%');
+      
+      // Tentukan status air berdasarkan persentase
+      const ws = waterPercent > 70 ? 'Penuh' : waterPercent > 30 ? 'Cukup' : 'Rendah';
+      const wse = $('#water-status');
+      wse.text(ws).attr('class', `text-lg font-bold ${waterPercent > 30 ? 'text-emerald-400' : 'text-red-400'}`);
+    }
+
+    // ==========================================
+    // FUNGSI MODAL KONFIRMASI KUSTOM
+    // ==========================================
+    // Tampilkan modal konfirmasi tanpa menggunakan alert() (yang tidak bekerja di iframe)
+    function showConfirmationModal(title, message, onConfirm) {
+      const modal = $(`
+        <div class="confirmation-modal-overlay fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 max-w-sm w-full border border-slate-700/50 shadow-2xl">
+            <div class="flex items-start gap-4 mb-4">
+              <div class="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="alert-circle" class="w-6 h-6 text-orange-400"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-white">${title}</h3>
+                <p class="text-slate-400 mt-2">${message}</p>
+              </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+              <button class="flex-1 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-bold py-2 rounded-lg transition-all confirm-btn">
+                Ya, Matikan
+              </button>
+              <button class="flex-1 bg-slate-700/50 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded-lg transition-colors cancel-btn">
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      `);
+
+      $('body').append(modal);
+      lucide.createIcons();
+
+      modal.find('.confirm-btn').on('click', () => {
+        modal.remove();
+        onConfirm();
+      });
+
+      modal.find('.cancel-btn').on('click', () => {
+        modal.remove();
+      });
+
+      // Tutup modal jika diklik di luar area modal
+      modal.on('click', (e) => {
+        if (e.target === modal[0]) {
+          modal.remove();
+        }
+      });
+    }
+
+    // ==========================================
+    // FUNGSI KONTROL LED
+    // ==========================================
+    // Toggle LED dengan nomor tertentu (1=Merah, 2=Hijau, 3=Biru)
+    function toggleLED(n) {
+      // Ubah state LED
+      ledStates[n] = !ledStates[n];
+      
+      // Dapatkan konfigurasi warna untuk LED ini
+      const c = ledColors[n];
+      const btn = $(`#led${n}-btn`);
+      const ind = $(`#led${n}-indicator`);
+      const st = $(`#led${n}-status`);
+      
+      if (ledStates[n]) {
+        // LED ON: ubah warna indikator menjadi warna LED
+        ind.attr('class', `w-4 h-4 rounded-full ${c.on} shadow-lg ${c.shadow} transition-colors`);
+        st.text('ON').attr('class', 'text-sm text-emerald-400 font-medium');
+        btn.addClass('active').addClass(c.border);
+      } else {
+        // LED OFF: kembalikan ke warna abu-abu
+        ind.attr('class', 'w-4 h-4 rounded-full bg-slate-600 transition-colors');
+        st.text('OFF').attr('class', 'text-sm text-slate-500');
+        btn.removeClass('active').removeClass(c.border);
+      }
+      
+      // Kirim status LED ke Firebase
+      const deviceMap = { 1: 'ledred', 2: 'ledgreen', 3: 'ledblue' };
+      sendFirebaseControl(deviceMap[n], ledStates[n]);
+      
+      // Update counter aktuator aktif
+      updateActiveActuators();
+    }
+
+    // ==========================================
+    // FUNGSI KONTROL LAMPU
+    // ==========================================
+    // Toggle Lampu Utama ON/OFF
+    function toggleLamp() {
+      lampState = !lampState;
+      const btn = $('#lamp-btn');
+      const ind = $('#lamp-indicator');
+      const st = $('#lamp-status');
+      const ic = $('#lamp-icon');
+      
+      if (lampState) {
+        // Lampu ON
+        ind.attr('class', 'w-6 h-6 rounded-full bg-yellow-400 shadow-lg shadow-yellow-400/50 transition-colors flex items-center justify-center');
+        ic.attr('class', 'w-4 h-4 text-yellow-900');
+        st.text('ON').attr('class', 'text-sm text-yellow-400 font-medium');
+        btn.addClass('active').addClass('border-yellow-400');
+      } else {
+        // Lampu OFF
+        ind.attr('class', 'w-6 h-6 rounded-full bg-slate-600 transition-colors flex items-center justify-center');
+        ic.attr('class', 'w-4 h-4 text-slate-400');
+        st.text('OFF').attr('class', 'text-sm text-slate-500');
+        btn.removeClass('active').removeClass('border-yellow-400');
+      }
+      
+      // Kirim status lampu ke Firebase
+      sendFirebaseControl('relay', lampState);
+      updateActiveActuators();
+    }
+
+    // ==========================================
+    // FUNGSI KONTROL PENYIRAMAN MANUAL
+    // ==========================================
+    // Aktivasi penyiraman manual (hanya bisa saat tanah kering dan tidak dalam cooldown)
+    function toggleManualWater() {
+      // Cek apakah masih dalam periode cooldown
+      if (wateringCooldown > 0) {
+        return;
+      }
+
+      // Cek kondisi tanah - hanya bisa siram jika tanah KERING
+      const soilCondition = $('#soil-condition').text();
+      if (soilCondition !== 'Kering') {
+        return;
+      }
+
+      // Aktifkan penyiraman manual dan matikan otomatis
+      manualWaterState = true;
+      autoWaterState = false;
+      updateWaterButtonStates();
+
+      // Update statistik penyiraman
+      lastWateringDuration = 30;
+      totalWateringCount++;
+      $('#total-watering').text(totalWateringCount + ' Kali');
+      $('#last-watering-duration').text(lastWateringDuration + ' detik');
+      $('#watering-mode').text('Manual - Aktif');
+      updateActiveActuators();
+      
+      // Kirim status ke Firebase
+      sendFirebaseControl('pompa', true);
+      sendTotalWateringToFirebase();
+      
+      // Mulai timer cooldown (30 detik)
+      wateringCooldown = 30;
+      startCooldownTimer();
+    }
+    
+    // ==========================================
+    // FUNGSI TIMER COOLDOWN PENYIRAMAN
+    // ==========================================
+    // Mulai countdown timer cooldown (mencegah penyiraman berulang cepat)
+    function startCooldownTimer() {
+      // Jika sudah ada timer yang berjalan, hentikan dulu
+      if (cooldownInterval) clearInterval(cooldownInterval);
+      
+      // Countdown setiap 1 detik
+      cooldownInterval = setInterval(function() {
+        wateringCooldown--;
+        const btn = $('#manual-water-btn');
+        const st = $('#manual-water-status');
+        
+        if (wateringCooldown > 0) {
+          // Tampilkan status cooldown dan disable tombol
+          btn.prop('disabled', true).css('opacity', '0.5').css('cursor', 'not-allowed');
+          st.text('Cooldown: ' + wateringCooldown + 's').attr('class', 'text-sm text-orange-400 font-medium');
+        } else {
+          // Cooldown selesai - siapkan untuk penyiraman berikutnya
+          wateringCooldown = 0;
+          manualWaterState = false;
+          
+          // Matikan pompa saat cooldown selesai
+          sendFirebaseControl('pompa', false);
+          
+          updateWaterButtonStates();
+          btn.prop('disabled', false).css('opacity', '1').css('cursor', 'pointer');
+          clearInterval(cooldownInterval);
+          cooldownInterval = null;
+        }
+      }, 1000);
+    }
+
+    // ==========================================
+    // FUNGSI KONTROL PENYIRAMAN OTOMATIS
+    // ==========================================
+    // Toggle Siram Otomatis (sistem akan menjaga kadar air secara otomatis)
+    function toggleAutoWater() {
+      if (autoWaterState) {
+        // Jika sudah aktif, tampilkan modal konfirmasi sebelum matikan
+        showConfirmationModal('Matikan Siram Otomatis?', 'Apakah Anda yakin ingin mematikan sistem penyiraman otomatis?', () => {
+          autoWaterState = false;
+          manualWaterState = false;
+          updateWaterButtonStates();
+          $('#watering-mode').text('Mode Manual');
+          updateActiveActuators();
+          sendFirebaseControl('pompa', false);
+        });
+      } else {
+        // Aktifkan penyiraman otomatis
+        autoWaterState = true;
+        manualWaterState = false;
+        updateWaterButtonStates();
+        $('#watering-mode').text('Otomatis - Aktif');
+        updateActiveActuators();
+        
+        // Kirim perintah pompa berdasarkan kondisi tanah SAAT INI
+        const soilResistanceText = $('#soil-resistance').text();
+        const soilValue = parseFloat(soilResistanceText);
+        
+        // Jika tanah kering (resistansi >= 2300), nyalakan pompa
+        if (soilValue >= 2300) {
+          sendFirebaseControl('pompa', true);
+        } else {
+          // Jika tanah cukup lembab, matikan pompa
+          sendFirebaseControl('pompa', false);
+        }
+      }
+    }
+
+    // ==========================================
+    // FUNGSI UPDATE STATUS TOMBOL PENYIRAMAN
+    // ==========================================
+    // Update visual tombol penyiraman manual dan otomatis
+    function updateWaterButtonStates() {
+      const manualBtn = $('#manual-water-btn');
+      const manualInd = $('#water-manual-indicator');
+      const manualSt = $('#manual-water-status');
+      
+      const autoBtn = $('#auto-water-btn');
+      const autoInd = $('#water-auto-indicator');
+      const autoSt = $('#auto-water-status');
+      const autoIcon = $('#auto-water-icon');
+
+      // Update visual tombol SIRAM MANUAL
+      if (manualWaterState) {
+        manualInd.attr('class', 'w-4 h-4 rounded-full bg-teal-500 shadow-lg shadow-teal-500/50 transition-colors');
+        manualSt.text('ON').attr('class', 'text-sm text-emerald-400 font-medium');
+        manualBtn.addClass('active').addClass('border-teal-400').addClass('bg-gradient-to-r').addClass('from-teal-600/20').addClass('to-emerald-600/20');
+      } else {
+        manualInd.attr('class', 'w-4 h-4 rounded-full bg-slate-600 transition-colors');
+        manualSt.text('OFF').attr('class', 'text-sm text-slate-500');
+        manualBtn.removeClass('active').removeClass('border-teal-400').removeClass('bg-gradient-to-r').removeClass('from-teal-600/20').removeClass('to-emerald-600/20');
+      }
+
+      // Update visual tombol SIRAM OTOMATIS
+      if (autoWaterState) {
+        autoInd.attr('class', 'w-5 h-5 rounded-full bg-teal-400 shadow-lg shadow-teal-400/50 transition-colors flex items-center justify-center');
+        autoIcon.attr('class', 'w-3 h-3 text-teal-900');
+        autoSt.text('ON').attr('class', 'text-sm text-teal-400 font-medium');
+        autoBtn.addClass('active').addClass('border-teal-400').addClass('bg-gradient-to-r').addClass('from-teal-600/20').addClass('to-emerald-600/20');
+      } else {
+        autoInd.attr('class', 'w-5 h-5 rounded-full bg-slate-600 transition-colors flex items-center justify-center');
+        autoIcon.attr('class', 'w-3 h-3 text-slate-400');
+        autoSt.text('OFF').attr('class', 'text-sm text-slate-500');
+        autoBtn.removeClass('active').removeClass('border-teal-400').removeClass('bg-gradient-to-r').removeClass('from-teal-600/20').removeClass('to-emerald-600/20');
+      }
+
+      // Jika kedua mode OFF, tampilkan "Mode Manual"
+      if (!manualWaterState && !autoWaterState) {
+        $('#watering-mode').text('Mode Manual');
+      }
+    }
+
+    // ==========================================
+    // FUNGSI UPDATE COUNTER AKTUATOR AKTIF
+    // ==========================================
+    // Hitung dan update jumlah aktuator yang sedang aktif
+    function updateActiveActuators() {
+      const c = Object.values(ledStates).filter(v => v).length + 
+                (lampState ? 1 : 0) + 
+                (manualWaterState ? 1 : 0) + 
+                (autoWaterState ? 1 : 0);
+      $('#active-actuators').text(c);
+    }
+
+    // ==========================================
+    // FUNGSI KIRIM TOTAL PENYIRAMAN KE FIREBASE
+    // ==========================================
+    // Kirim jumlah total penyiraman ke Firebase
+    function sendTotalWateringToFirebase() {
+      if (window.firebaseDB) {
+        const { ref, set, database } = window.firebaseDB;
+        set(ref(database, `statistik/totalPenyiraman`), totalWateringCount).catch(e => console.error('Error sending total watering:', e));
+      }
+    }
+
+    // ==========================================
+    // FUNGSI RESET TOTAL PENYIRAMAN
+    // ==========================================
+    // Reset total penyiraman ke 0
+    function resetTotalWatering() {
+      showConfirmationModal('Reset Total Penyiraman?', 'Apakah Anda yakin ingin mereset total penyiraman ke 0?', () => {
+        totalWateringCount = 0;
+        $('#total-watering').text('0 Kali');
+        
+        // Kirim reset ke Firebase
+        if (window.firebaseDB) {
+          const { ref, set, database } = window.firebaseDB;
+          set(ref(database, `statistik/totalPenyiraman`), 0).catch(e => console.error('Error resetting total watering:', e));
+        }
+      });
+    }
+
+    // ==========================================
+    // FUNGSI KIRIM KONTROL KE FIREBASE
+    // ==========================================
+    // Kirim perintah kontrol ke Firebase Database
+    // device: nama perangkat (ledred, ledgreen, ledblue, relay, pompa)
+    // state: true (ON/1) atau false (OFF/0)
+    function sendFirebaseControl(device, state) {
+      if (window.firebaseDB) {
+        const { ref, set, database } = window.firebaseDB;
+        const value = state ? 1 : 0;
+        set(ref(database, `kontrol/${device}`), value).catch(e => console.error(`Error sending ${device}:`, e));
+      }
+    }
+
+    // ==========================================
+    // FUNGSI UPDATE WAKTU TERAKHIR UPDATE
+    // ==========================================
+    // Update waktu terakhir sistem update (ditampilkan di header)
+    function updateLastUpdate() {
+      const n = new Date();
+      $('#last-update').text(n.toLocaleTimeString('id-ID'));
+    }
+
+    // ==========================================
+    // FUNGSI DENGARKAN DATA FIREBASE REAL-TIME
+    // ==========================================
+    // Setup listener untuk semua sensor dan kontrol di Firebase
+    function listenToFirebaseData() {
+      if (window.firebaseDB) {
+        const { ref, onValue, database } = window.firebaseDB;
+        
+        // ========== SENSOR SUHU ==========
+        onValue(ref(database, 'sensor/suhu'), (snapshot) => {
+          const value = snapshot.val();
+          if (value !== null) {
+            $('#temp-value').text(value);
+            const ts = value > 30 ? 'Panas' : value < 20 ? 'Dingin' : 'Normal';
+            $('#temp-status').text(ts);
+          }
+        });
+
+        // ========== SENSOR KELEMBAPAN UDARA ==========
+        onValue(ref(database, 'sensor/lembab'), (snapshot) => {
+          const value = snapshot.val();
+          if (value !== null) {
+            $('#humidity-value').text(value);
+            const hs = value > 80 ? 'Tinggi' : value < 60 ? 'Rendah' : 'Baik';
+            $('#humidity-status').text(hs);
+          }
+        });
+
+        // ========== SENSOR KELEMBAPAN TANAH ==========
+        onValue(ref(database, 'sensor/soil'), (snapshot) => {
+          const value = snapshot.val();
+          if (value !== null) {
+            $('#soil-resistance').text(value + ' Ω');
+            const sc = value > 2300 ? 'Kering' : 'Basah';
+            $('#soil-condition').text(sc);
+            
+            // Hitung persentase resistansi untuk progress bar
+            let rp = Math.floor((value / 2800) * 100);
+            rp = Math.max(0, Math.min(100, rp));
+            $('#soil-resistance-bar').css('width', rp + '%');
+            
+            // Kontrol siram otomatis: jika mode otomatis aktif, cek kondisi tanah
+            if (autoWaterState) {
+              if (value < 2300) {
+                // Tanah sudah cukup lembab, matikan pompa
+                sendFirebaseControl('pompa', false);
+              } else if (value >= 2300) {
+                // Tanah kering, nyalakan pompa
+                sendFirebaseControl('pompa', true);
+              }
+            }
+          }
+        });
+
+        // ========== SENSOR TEGANGAN AC ==========
+        onValue(ref(database, 'sensor/tegangan'), (snapshot) => {
+          const value = snapshot.val();
+          if (value !== null) {
+            $('#voltage-value').text(value);
+            const vs = value > 240 ? 'Tinggi' : value < 190 ? 'Rendah' : 'Normal';
+            $('#voltage-status').text(vs);
+          }
+        });
+
+        // ========== SENSOR ARUS AC ==========
+        onValue(ref(database, 'sensor/arus'), (snapshot) => {
+          const value = snapshot.val();
+          if (value !== null) {
+            $('#current-value').text(value + ' A');
+            const cp = Math.floor((value / 8) * 100);
+            $('#current-bar').css('width', Math.min(100, cp) + '%');
+          }
+        });
+
+
+
+        // ========== SENSOR JARAK (KETINGGIAN AIR) ==========
+        // Konversi jarak sensor ke tinggi air
+        // Rumus: tinggiAir = maxHeight - nilaiJarak
+        onValue(ref(database, 'sensor/jarak'), (snapshot) => {
+          const sensorDistance = snapshot.val();
+          if (sensorDistance !== null) {
+            // Konversi: jika sensor di atas tangki setinggi maxHeight
+            // Jarak sensor ke air = maxHeight - tinggi air
+            // Maka: tinggi air = maxHeight - jarak
+            const maxHeight = tankConfig.tank_height;
+            const waterHeight = Math.max(0, maxHeight - sensorDistance);
+            updateWaterDisplay(Math.min(waterHeight, maxHeight));
+          }
+        });
+
+        // ========== FEEDBACK KONTROL LED MERAH ==========
+        onValue(ref(database, 'kontrol/ledred'), (snapshot) => {
+          const value = snapshot.val();
+          if (value === 1 && !ledStates[1]) toggleLED(1);
+          else if (value === 0 && ledStates[1]) toggleLED(1);
+        });
+
+        // ========== FEEDBACK KONTROL LED HIJAU ==========
+        onValue(ref(database, 'kontrol/ledgreen'), (snapshot) => {
+          const value = snapshot.val();
+          if (value === 1 && !ledStates[2]) toggleLED(2);
+          else if (value === 0 && ledStates[2]) toggleLED(2);
+        });
+
+        // ========== FEEDBACK KONTROL LED BIRU ==========
+        onValue(ref(database, 'kontrol/ledblue'), (snapshot) => {
+          const value = snapshot.val();
+          if (value === 1 && !ledStates[3]) toggleLED(3);
+          else if (value === 0 && ledStates[3]) toggleLED(3);
+        });
+
+        // ========== FEEDBACK KONTROL LAMPU UTAMA ==========
+        onValue(ref(database, 'kontrol/relay'), (snapshot) => {
+          const value = snapshot.val();
+          if (value === 1 && !lampState) toggleLamp();
+          else if (value === 0 && lampState) toggleLamp();
+        });
+      }
+    }
+
+    // ==========================================
+    // FUNGSI UPDATE SENSOR UI (ALTERNATIF)
+    // ==========================================
+    // Fungsi backup untuk update UI sensor (tidak digunakan jika Firebase aktif)
+    function updateSensorUI(d) {
+      const sc = d.soilResistance > 600 ? 'Kering' : d.soilResistance > 400 ? 'Lembab' : 'Sangat Lembab';
+      $('#soil-condition').text(sc);
+      $('#soil-resistance').text(d.soilResistance + ' Ω');
+      const rp = Math.floor((d.soilResistance / 900) * 100);
+      $('#soil-resistance-bar').css('width', rp + '%');
+
+      $('#ldr-1').text(d.ldr1);
+      $('#ldr-2').text(d.ldr2);
+      $('#ldr-3').text(d.ldr3);
+      $('#ldr-4').text(d.ldr4);
+
+      const ts = d.temperature > 30 ? 'Panas' : d.temperature < 20 ? 'Dingin' : 'Normal';
+      $('#temp-value').text(d.temperature);
+      $('#temp-status').text(ts);
+
+      const hs = d.humidity > 80 ? 'Tinggi' : d.humidity < 60 ? 'Rendah' : 'Baik';
+      $('#humidity-value').text(d.humidity);
+      $('#humidity-status').text(hs);
+
+      servoHPos = d.servoHorizontal;
+      $('#servo-h-arm').css('transform', `rotateZ(${servoHPos}deg)`);
+      $('#servo-h-pos').text(servoHPos);
+
+      servoVPos = d.servoVertical;
+      $('#servo-v-arm').css('transform', `rotateZ(${servoVPos}deg)`);
+      $('#servo-v-pos').text(servoVPos);
+
+      const capacity = calculateTankCapacity();
+      const wp = Math.floor((d.waterVolume / capacity) * 100);
+      $('#water-height').text(d.waterHeight);
+      $('#water-volume').text(d.waterVolume);
+      $('#water-volume-ml').text((d.waterVolume * 1000).toLocaleString('id-ID'));
+      $('#water-fill').css('height', wp + '%');
+      $('#water-level-percent').text(wp + '%');
+
+      const ws = wp > 70 ? 'Penuh' : wp > 30 ? 'Cukup' : 'Rendah';
+      const wse = $('#water-status');
+      wse.text(ws).attr('class', `text-lg font-bold ${wp > 30 ? 'text-emerald-400' : 'text-red-400'}`);
+
+      // Kontrol penyiraman otomatis berdasarkan threshold
+      if (autoWaterState && wp <= parseInt(window.elementSdk?.config?.auto_water_threshold || defaultConfig.auto_water_threshold)) {
+        if (!manualWaterState) {
+          lastWateringDuration = 20;
+          totalWateringCount++;
+          $('#total-watering').text(totalWateringCount + ' Kali');
+          $('#last-watering-duration').text(lastWateringDuration + ' detik');
+        }
+      }
+
+      updateLastUpdate();
+    }
+
+    // ==========================================
+    // FUNGSI REFRESH DATA
+    // ==========================================
+    // Refresh data secara manual (update timestamp terakhir)
+    function refreshData() {
+      updateLastUpdate();
+    }
+
+    // ==========================================
+    // FUNGSI MODAL KONFIGURASI TANGKI
+    // ==========================================
+    // Buka modal untuk konfigurasi tangki air
+    function openTankModal() {
+      $('#tank-modal').removeClass('hidden');
+      lucide.createIcons();
+    }
+
+    // Tutup modal konfigurasi tangki
+    function closeTankModal() {
+      $('#tank-modal').addClass('hidden');
+    }
+
+    // Update display kapasitas tangki saat user mengubah dimensi
+    function updateCapacityDisplay() {
+      const shape = $('#tank-shape-select').val();
+      let capacity = 0;
+
+      if (shape === 'kubus') {
+        const length = parseFloat($('#tank-length').val()) || 0;
+        const width = parseFloat($('#tank-width').val()) || 0;
+        const height = parseFloat($('#tank-height').val()) || 0;
+        capacity = (length * width * height) / 1000;
+      } else {
+        const radius = parseFloat($('#tank-radius').val()) || 0;
+        const height = parseFloat($('#tank-height').val()) || 0;
+        capacity = (Math.PI * Math.pow(radius, 2) * height) / 1000;
+      }
+      $('#capacity-display').text(capacity.toFixed(1) + ' L');
+    }
+
+    // Toggle tampilan field input berdasarkan bentuk tangki dipilih
+    function toggleTankShapeFields() {
+      const shape = $('#tank-shape-select').val();
+      $('#kubus-fields').toggleClass('hidden', shape !== 'kubus');
+      $('#tabung-fields').toggleClass('hidden', shape !== 'tabung');
+      updateCapacityDisplay();
+    }
+
+    // Simpan konfigurasi tangki dan update dashboard
+    function saveTankConfig() {
+      const shape = $('#tank-shape-select').val();
+      tankConfig.tank_shape = shape;
+      tankConfig.tank_height = parseFloat($('#tank-height').val());
+      
+      if (shape === 'kubus') {
+        tankConfig.tank_length = parseFloat($('#tank-length').val());
+        tankConfig.tank_width = parseFloat($('#tank-width').val());
+      } else {
+        tankConfig.tank_length = parseFloat($('#tank-radius').val());
+      }
+
+      const capacity = calculateTankCapacity();
+      $('#tank-capacity').text(capacity.toFixed(1));
+      closeTankModal();
+
+      // Update config di Element SDK jika tersedia
+      if (window.elementSdk) {
+        window.elementSdk.setConfig({
+          tank_shape: shape,
+          tank_length: tankConfig.tank_length,
+          tank_width: tankConfig.tank_width,
+          tank_height: tankConfig.tank_height
+        });
+      }
+
+      // Update tampilan tangki dengan ketinggian air saat ini
+      const currentHeight = parseFloat($('#water-height').text()) || 0;
+      updateWaterDisplay(currentHeight);
+    }
+
+    // ==========================================
+    // FUNGSI INISIALISASI APLIKASI
+    // ==========================================
+    // Inisialisasi Element SDK (untuk edit panel di Canva)
+    async function initApp() {
+      if (window.elementSdk) {
+        await window.elementSdk.init({
+          defaultConfig,
+          onConfigChange: async (cfg) => {
+            // Update judul dashboard
+            $('#dashboard-title').text(cfg.dashboard_title || defaultConfig.dashboard_title);
+            
+            // Update nama lokasi
+            $('#location-name').text(cfg.location_name || defaultConfig.location_name);
+            
+            // Update konfigurasi tangki jika ada perubahan
+            if (cfg.tank_shape) {
+              tankConfig.tank_shape = cfg.tank_shape;
+              tankConfig.tank_length = cfg.tank_length || defaultConfig.tank_length;
+              tankConfig.tank_width = cfg.tank_width || defaultConfig.tank_width;
+              tankConfig.tank_height = cfg.tank_height || defaultConfig.tank_height;
+              const capacity = calculateTankCapacity();
+              $('#tank-capacity').text(capacity.toFixed(1));
+            }
+          },
+          mapToCapabilities: (cfg) => ({
+            recolorables: [
+              { get: () => cfg.primary_color || defaultConfig.primary_color, set: (v) => window.elementSdk.setConfig({ primary_color: v }) },
+              { get: () => cfg.secondary_color || defaultConfig.secondary_color, set: (v) => window.elementSdk.setConfig({ secondary_color: v }) },
+              { get: () => cfg.text_color || defaultConfig.text_color, set: (v) => window.elementSdk.setConfig({ text_color: v }) },
+              { get: () => cfg.accent_color || defaultConfig.accent_color, set: (v) => window.elementSdk.setConfig({ accent_color: v }) },
+              { get: () => cfg.surface_color || defaultConfig.surface_color, set: (v) => window.elementSdk.setConfig({ surface_color: v }) }
+            ],
+            borderables: [],
+            fontEditable: undefined,
+            fontSizeable: undefined
+          }),
+          mapToEditPanelValues: (cfg) => new Map([
+            ['dashboard_title', cfg.dashboard_title || defaultConfig.dashboard_title],
+            ['location_name', cfg.location_name || defaultConfig.location_name],
+            ['auto_water_threshold', cfg.auto_water_threshold || defaultConfig.auto_water_threshold],
+            ['tank_shape', cfg.tank_shape || defaultConfig.tank_shape],
+            ['tank_length', cfg.tank_length || defaultConfig.tank_length],
+            ['tank_width', cfg.tank_width || defaultConfig.tank_width],
+            ['tank_height', cfg.tank_height || defaultConfig.tank_height]
+          ])
+        });
+      }
+    }
+
+    // ==========================================
+    // SETUP AWAL - DOCUMENT READY
+    // ==========================================
+    $(document).ready(function() {
+      // Initialize Lucide icons
+      lucide.createIcons();
+      
+      // Mulai mendengarkan data real-time dari Firebase
+      listenToFirebaseData();
+      
+      // Inisialisasi aplikasi dan Element SDK
+      initApp();
+      
+      // Update waktu setiap 1 detik
+      setInterval(updateLastUpdate, 1000);
+    });
+   </script>
+  </div>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ebfd20987b36476',t:'MTc3NjEzOTQwNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
