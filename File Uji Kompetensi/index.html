@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard IoT UKK</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Poppins', sans-serif; background: #f4f6f9; }
+
+.layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+    background: linear-gradient(180deg, #0f9d58, #0b7d45);
+    color: white;
+    padding: 20px;
+}
+.sidebar h2 { text-align: center; margin-bottom: 30px; }
+
+.menu a {
+    display: block;
+    padding: 12px;
+    margin-bottom: 10px;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.menu a.active, .menu a:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+/* MAIN */
+.main { padding: 25px; }
+h1 { margin-bottom: 20px; }
+
+/* CARD */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+.value {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+/* BUTTON */
+button {
+    padding: 10px 15px;
+    margin: 5px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    color: white;
+}
+.btn-red { background: #f44336; }
+.btn-blue { background: #2196f3; }
+.btn-green { background: #4caf50; }
+
+input[type=range] { width: 100%; }
+
+@media(max-width:768px){
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <h2>IoT UKK</h2>
+    <div class="menu">
+        <a class="active" onclick="showPage('dashboard',this)">Dashboard</a>
+        <a onclick="showPage('sensor',this)">Monitoring Sensor</a>
+        <a onclick="showPage('lampu',this)">Kontrol Lampu</a>
+        <a onclick="showPage('servo',this)">Kontrol Servo</a>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- DASHBOARD -->
+<section id="dashboard">
+    <h1>Uji Kompetensi</h1>
+    <div class="card">
+        <p><strong>Nama:</strong> Muhammad Adhnan Hermawan</p>
+        <p><strong>Kelas:</strong> XII-K2</p>
+    </div>
+</section>
+
+<!-- SENSOR -->
+<section id="sensor" style="display:none;">
+    <h1>Monitoring Sensor</h1>
+    <div class="cards">
+        <div class="card">
+            <h3>Suhu (DHT)</h3>
+            <div class="value"><span id="suhu">0</span> °C</div>
+        </div>
+        <div class="card">
+            <h3>Kelembaban (DHT)</h3>
+            <div class="value"><span id="kelembaban">0</span> %</div>
+        </div>
+        <div class="card">
+            <h3>Jarak (HC-SR04)</h3>
+            <div class="value"><span id="jarak">0</span> cm</div>
+        </div>
+    </div>
+</section>
+
+<!-- LAMPU -->
+<section id="lampu" style="display:none;">
+    <h1>Kontrol Lampu</h1>
+    <div class="card">
+        <button id="btn-merah" class="btn-red" onclick="toggleLED('merah')">ON</button>
+        <button id="btn-biru" class="btn-blue" onclick="toggleLED('biru')">ON</button>
+        <button id="btn-hijau" class="btn-green" onclick="toggleLED('hijau')">ON</button>
+    </div>
+</section>
+
+<!-- SERVO -->
+<section id="servo" style="display:none;">
+    <h1>Kontrol Servo</h1>
+    <div class="card">
+        <p>Sudut Servo: <strong><span id="servoValue">90</span>°</strong></p>
+        <input type="range" min="0" max="180" value="90" oninput="updateServo(this.value)">
+    </div>
+</section>
+
+</main>
+</div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+var firebaseConfig = {
+    apiKey: "AIzaSyCFtAlvVdJJN2xAiIk0GUH0C6W2KOXsf-w",
+    databaseURL: "https://uji-kompetensi-11709-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.database();
+
+/* SENSOR */
+db.ref('sensor/suhu').on('value', s => suhu.innerText = s.val());
+db.ref('sensor/kelembaban').on('value', s => kelembaban.innerText = s.val());
+db.ref('sensor/jarak').on('value', s => jarak.innerText = s.val());
+
+/* LAMPU */
+function toggleLED(warna){
+    const ref = db.ref('led/'+warna);
+    ref.once('value').then(s => ref.set(!s.val()));
+}
+['merah','biru','hijau'].forEach(w=>{
+    db.ref('led/'+w).on('value', s=>{
+        const b=document.getElementById('btn-'+w);
+        b.innerText=s.val()?'OFF':'ON';
+        b.style.opacity=s.val()?1:0.7;
+    });
+});
+
+/* SERVO */
+function updateServo(v){
+    servoValue.innerText=v;
+    db.ref('servo/sudut').set(parseInt(v));
+}
+db.ref('servo/sudut').on('value', s => servoValue.innerText=s.val());
+
+/* NAVIGASI */
+function showPage(id, el){
+    document.querySelectorAll('main section').forEach(s=>s.style.display='none');
+    document.getElementById(id).style.display='block';
+    document.querySelectorAll('.menu a').forEach(a=>a.classList.remove('active'));
+    el.classList.add('active');
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+Tipe data HTML; 
+string (huruf), 
+number (int, float, long), 
+boolean (true/false), 
+array(kumpulan data/ list), 
+const (variabel yang gabisa diubah), 
+let (Local), 
+var (Global).
+
+tipe data arduino;
+string (huruf), 
+number (int, float, long), 
+boolean (true/false), 
+array(kumpulan data/ list), 
+const (variabel yang gabisa diubah), 
+let (Local), 
+
+&& = Dan
+|| = Atau
+!  = Not
+
+Kabel;
+LED_MERAH D1
+LED_BIRU D3
+LED_HIJAU D2
+
+SERVO_PIN D4 (kuning = pin digital, merah agak oren = 3V (jangan di gabung sama 3v yang lain), coklat = GND )
+
+DHTPIN D7 (+ = 3V, out = pin digital, - = GND)
+
+breadboard (- = GND, + = 3V)
