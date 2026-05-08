@@ -1,15 +1,56 @@
-D5 -=====-> 11
-D6 -=======-> 12
-D7 -==========-> 14
-VCC -=======-> 16,10
-GND -========> 8,13
+Judul: Tragedi Peristiwa Sampit
+(Danton: Suara berat, tempo lambat, membangun suasana)
+Danton:
+Februari dua ribu satu. Ingatan itu masih membekas.
+Ketika amarah membakar akal sehat, dan jalanan menjadi saksi nyawa yang hilang sia-sia.
+Kita terpecah, kita terluka, di atas tanah yang kita pijak bersama.
 
-Q0 -=======>  15
-Q1 -=======> 1
-Q2 -=======> 2
-Q3 -=======> 3
-Q4 -=======> 4
-Q5 -=======> 5
-Q6 -=======> 6
-Q7 -=======> 7
+(Anggota: Suara berat, dalam, dan serempak)
+Anggota:
+Sampit menangis dalam darah!
+Bumi Borneo berselimut duka!
 
+(Danton: Melanjutkan narasi dengan nada yang lebih menekan)
+Danton:
+Hanya karena kita berbeda asal-usul.
+Hanya karena kita lupa bahwa kita adalah saudara.
+Ribuan orang mengungsi, membawa luka yang sulit dicari obatnya.
+Anak-anak kehilangan rumah, orang tua kehilangan arah.
+
+(Anggota: Hentak kaki serempak dua kali - Suara menggelegar)
+Anggota:
+Hentikan dendam masa lalu!
+Hargai nyawa di atas segalanya!
+Kita semua adalah saudara!
+
+(Danton: Suara naik, penuh wibawa dan ketegasan)
+Danton:
+Cukup!
+Jangan biarkan sejarah kelam itu terulang kembali.
+Hari ini, di lapangan ini, kita tegaskan kepada dunia bahwa perbedaan bukan alasan untuk menumpahkan darah!
+
+(Anggota: Suara lantang dan penuh penekanan)
+Anggota:
+Hapus keringat air mata!
+Kami garda terdepan kedamaian!
+Kami penjaga keutuhan bangsa!
+
+(Danton: Suara tenang namun tajam)
+Danton:
+Tragedi itu adalah pelajaran pahit.
+Tentang betapa hancurnya kita jika benci yang kita pelihara.
+Biarkan Sampit menjadi bukti, bahwa damai itu mahal, dan damai itu indah.
+
+(Anggota: Suara semakin keras, penuh semangat)
+Anggota:
+Rawat damai dalam hati!
+Satu nusa satu bangsa!
+Bhineka Tunggal Ika selamanya!
+
+(Danton: Posisi gagah sempurna)
+Danton:
+Karena selama darah kita masih merah, kita adalah satu!
+
+(Seluruhnya: Teriak maksimal)
+Semua:
+INDONESIA! MERDEKA!
